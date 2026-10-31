@@ -1,0 +1,41 @@
+<%@page import="java.util.List,java.util.Collections,java.util.Set,java.util.HashSet,com.incluyelab.model.Postulacion,com.incluyelab.model.Oferta,com.incluyelab.model.Usuario,com.incluyelab.model.Notificacion"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@include file="WEB-INF/jspf/helpers.jspf"%>
+<%
+    Usuario usuario = (Usuario) session.getAttribute("usuario");
+    if (usuario == null || !"POSTULANTE".equals(usuario.getRol())) { response.sendRedirect(request.getContextPath()+"/login"); return; }
+    if (request.getAttribute("ofertas") == null && request.getAttribute("error") == null) { response.sendRedirect(request.getContextPath()+"/postulante"); return; }
+    List<Oferta> ofertas = (List<Oferta>) request.getAttribute("ofertas");
+    List<Postulacion> postulaciones = (List<Postulacion>) request.getAttribute("postulaciones");
+    if (ofertas == null) ofertas = Collections.emptyList();
+    if (postulaciones == null) postulaciones = Collections.emptyList();
+    List<Notificacion> notificaciones=(List<Notificacion>)request.getAttribute("notificaciones");
+    if(notificaciones==null)notificaciones=Collections.emptyList();
+    Set<Integer> applied = new HashSet<>();
+    for (Postulacion p : postulaciones) applied.add(p.getIdOferta());
+    Object flashError = session.getAttribute("flashError"); session.removeAttribute("flashError");
+%>
+<!DOCTYPE html><html lang="es"><head><title>Mis postulaciones | IncluyeLab</title><%@include file="WEB-INF/jspf/head.jspf"%></head><body>
+<%@include file="WEB-INF/jspf/header.jspf"%>
+<main class="container dashboard" id="contenido">
+    <div class="dashboard-heading"><div><p class="eyebrow teal">MI ESPACIO · POSTULANTE</p><h1>Hola, <%=h(usuario.getNombre())%></h1><p>Cada postulación es un paso hacia tu próxima oportunidad.</p></div><div class="candidate-actions"><a class="btn" href="<%=request.getContextPath()%>/perfil-profesional"><i data-lucide="contact-round" aria-hidden="true"></i> Mi perfil y CV</a><a class="btn primary" href="<%=request.getContextPath()%>/inicio#ofertas"><i data-lucide="search" aria-hidden="true"></i> Buscar empleo</a></div></div>
+    <nav class="dashboard-nav" aria-label="Secciones del panel"><a href="#postulaciones">Mis postulaciones</a><a href="#disponibles">Ofertas disponibles</a><a href="<%=request.getContextPath()%>/inicio?guardadas=1#ofertas">Ofertas guardadas</a></nav>
+    <% if (session.getAttribute("conadisExito") != null) { %><div class="alert alert-success alert-dismissible fade show notice" role="status"><i data-lucide="shield-check" aria-hidden="true"></i> <%=h(session.getAttribute("conadisExito"))%><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar aviso"></button></div><% session.removeAttribute("conadisExito"); } %>
+    <% if ("postulacion".equals(request.getParameter("ok"))) { %><div class="alert alert-success notice" role="status">Tu postulación fue registrada correctamente.</div><% } %>
+    <% if ("eliminada".equals(request.getParameter("ok"))) { %><div class="alert alert-success notice" role="status">Tu postulación fue eliminada correctamente.</div><% } %>
+    <% if (flashError != null) { %><div class="alert alert-danger error" role="alert"><%=h(flashError)%></div><% } %>
+    <% if (request.getAttribute("error") != null) { %><div class="alert alert-danger error" role="alert">No se pudo cargar tu información. Intenta nuevamente.</div><% } %>
+    <div class="metric-grid">
+        <div class="metric"><i data-lucide="send" aria-hidden="true"></i><div><strong><%=postulaciones.size()%></strong><span>Postulaciones enviadas</span></div></div>
+        <div class="metric"><i data-lucide="briefcase-business" aria-hidden="true"></i><div><strong><%=ofertas.size()%></strong><span>Ofertas disponibles</span></div></div>
+        <div class="metric"><i data-lucide="shield-check" aria-hidden="true" style="color:#007681;"></i><div><strong>Identidad digital</strong><span class="badge badge-success" style="background:#e6f7ed; color:#185a3f; font-weight:600;"><i data-lucide="check-circle" aria-hidden="true"></i> CONADIS Verificado</span></div></div>
+    </div>
+    <section class="section" id="notificaciones"><div class="section-toolbar"><h2>Notificaciones <span class="badge"><%=notificaciones.size()%></span></h2></div><div class="application-list"><% for(Notificacion n:notificaciones){ %><article class="application-row"><div><h3><%=h(n.getTitulo())%></h3><p><%=h(n.getMensaje())%></p></div><div class="application-status"><span class="badge"><%=h(n.getTipo())%></span><small><%=h(n.getFechaCreacionTexto())%></small></div></article><% } %><% if(notificaciones.isEmpty()){ %><p class="muted">No tienes notificaciones nuevas.</p><% } %></div></section>
+    <section class="section" id="postulaciones"><h2>Mis postulaciones</h2><div class="application-list">
+        <% if (postulaciones.isEmpty()) { %><div class="empty-state"><i data-lucide="briefcase-business" aria-hidden="true"></i><h3>Tu próxima oportunidad te espera</h3><p>Aún no has enviado postulaciones. Explora los puestos disponibles y da el primer paso.</p><a class="btn primary" href="#disponibles">Explorar oportunidades</a></div><% } %>
+        <% for (Postulacion p : postulaciones) { %><article class="application-row"><div><h3><%=h(p.getOferta())%></h3><p><%=h(p.getEmpresa())%></p></div><div class="application-status"><span class="badge"><%=h(p.getEstado())%></span><small><%=h(p.getFechaPostulacion())%></small><form method="post" action="<%=request.getContextPath()%>/postular" onsubmit="return confirm('¿Eliminar esta postulación? La empresa dejará de verla.');"><input type="hidden" name="csrf" value="<%=h(session.getAttribute("postulacionCsrf"))%>"><input type="hidden" name="accion" value="eliminar"><input type="hidden" name="idPostulacion" value="<%=p.getIdPostulacion()%>"><button class="icon-btn danger-action" type="submit" title="Eliminar postulación" aria-label="Eliminar postulación a <%=h(p.getOferta())%>"><i data-lucide="trash-2"></i></button></form></div></article><% } %>
+    </div></section>
+    <section class="section" id="disponibles"><div class="section-toolbar"><h2>Ofertas disponibles para ti</h2><a class="text-link" href="<%=request.getContextPath()%>/inicio#ofertas">Buscar con filtros <i data-lucide="arrow-right" aria-hidden="true"></i></a></div><div class="offer-grid">
+        <% for (Oferta o : ofertas) { %><article class="offer-card"><div class="company-identity"><span class="logo-box"><% if (!o.getLogoPublico().isEmpty()) { %><img src="<%=request.getContextPath()%>/<%=h(o.getLogoPublico())%>" alt="<%=h(o.getEmpresa())%>"><% } else { %><i data-lucide="building-2" aria-hidden="true"></i><% } %></span><strong><%=h(o.getEmpresa())%></strong></div><h3 style="margin-top:18px"><a class="text-link" href="<%=request.getContextPath()%>/inicio?oferta=<%=o.getIdOferta()%>#ofertas"><%=h(o.getTitulo())%></a></h3><p class="offer-location"><i data-lucide="map-pin" aria-hidden="true"></i><%=h(o.getUbicacion())%></p><div class="tags"><span class="badge"><%=h(o.getModalidad())%></span><span class="salary">S/ <%=o.getSalario()%></span></div><p><%=h(o.getResumen())%></p><div class="adaptations"><i data-lucide="accessibility" aria-hidden="true"></i><div><strong>Adaptaciones disponibles</strong><p><%=h(o.getAdaptaciones())%></p></div></div><div class="offer-bottom"><a class="text-link" href="<%=request.getContextPath()%>/inicio?oferta=<%=o.getIdOferta()%>#ofertas">Ver oferta <i data-lucide="arrow-up-right" aria-hidden="true"></i></a><form method="post" action="<%=request.getContextPath()%>/postular"><input type="hidden" name="csrf" value="<%=h(session.getAttribute("postulacionCsrf"))%>"><input type="hidden" name="idOferta" value="<%=o.getIdOferta()%>"><button class="btn primary" type="submit" <%=applied.contains(o.getIdOferta()) ? "disabled" : ""%>><i data-lucide="<%=applied.contains(o.getIdOferta()) ? "check" : "send"%>" aria-hidden="true"></i><%=applied.contains(o.getIdOferta()) ? "Ya postulaste" : "Postular"%></button></form></div></article><% } %>
+    </div></section>
+</main><%@include file="WEB-INF/jspf/footer.jspf"%></body></html>

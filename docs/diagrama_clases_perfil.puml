@@ -1,0 +1,43 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class PerfilPostulante {
+  - idUsuario: int
+  - nombre: String
+  - correo: String
+  - telefono: String
+  - titular: String
+  - ubicacion: String
+  - acercaDe: String
+  - habilidades: String
+  - adaptacionRequerida: String
+  - fotoUrl: String
+  - cvNombre: String
+  - cvArchivo: String
+  - experiencias: List<Experiencia>
+  - educacion: List<Educacion>
+  - certificaciones: List<Certificacion>
+  --
+  + agregarExperiencia(experiencia)
+  + agregarEducacion(educacion)
+  + agregarCertificacion(certificacion)
+  ==
+  CLASE INTERNA Experiencia
+  id, cargo, organizacion, inicio, fin, descripcion
+  ==
+  CLASE INTERNA Educacion
+  id, institucion, carrera, inicio, fin, descripcion
+  ==
+  CLASE INTERNA Certificacion
+  id, nombre, emisor, fecha, url
+}
+
+note right of PerfilPostulante
+  Experiencia, Educacion y Certificacion
+  son clases internas static final.
+  Deben mostrarse dentro de este mismo bloque,
+  nunca como archivos o clases independientes.
+  Las tres listas siempre existen aunque esten vacias.
+end note
+@enduml
+

@@ -1,0 +1,15 @@
+<%@page pageEncoding="UTF-8"%>
+<%@page import="com.incluyelab.model.ApoyosOferta,java.util.Set"%>
+<%
+    Set<String> apoyosSeleccionados = ApoyosOferta.codigos((String)request.getAttribute("apoyosSeleccionados"));
+    String[][] gruposApoyo = {{"movilidad","Accesibilidad f&iacute;sica / motora"},{"visual","Apoyo visual"},{"auditiva","Comunicaci&oacute;n accesible"},{"complementos","Condiciones complementarias"}};
+%>
+<div class="col-12 support-fields"><h3>Apoyos disponibles en el puesto</h3>
+<div class="row g-3">
+<% for(String[] grupoApoyo : gruposApoyo){ %>
+<fieldset class="col-md-6"><legend><%=grupoApoyo[1]%></legend>
+<% for(String[] apoyo : ApoyosOferta.catalogo()){ if(grupoApoyo[0].equals(apoyo[1]) || ("complementos".equals(grupoApoyo[0]) && ("flexible".equals(apoyo[1]) || "pausas".equals(apoyo[1])))){ %>
+<label class="check"><input type="checkbox" name="apoyos" value="<%=apoyo[0]%>" <%=apoyosSeleccionados.contains(apoyo[0])?"checked":""%>><span><%=h(apoyo[2])%></span></label>
+<% }} %></fieldset>
+<% } %>
+</div></div>

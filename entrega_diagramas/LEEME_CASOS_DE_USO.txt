@@ -1,0 +1,108 @@
+PORTAL DE EMPLEO INCLUSIVO - MATERIAL PARA DIAGRAMAS
+Fecha: 2026-10-08
+
+CONTENIDO
+portal_empleo_inclusivo_estructura.sql: estructura real de las cinco tablas
+exportada de MySQL. No incluye filas, datos personales ni contrasenas guardadas.
+La columna contrasena se conserva porque forma parte del modelo.
+No es una copia de seguridad de los datos.
+
+ABRIR EN MYSQL WORKBENCH
+1. Abrir la conexion MySQL de tu propia computadora.
+2. File > Open SQL Script: seleccionar el archivo SQL.
+3. Ejecutar el script completo con una cuenta que pueda crear bases y tablas.
+4. Refrescar Schemas: aparecera portal_empleo_inclusivo_diagrama.
+   La base original de la aplicacion se llama portal_empleo_inclusivo.
+   El nombre de esta copia es distinto para no tocar la base original.
+5. Para un diagrama EER: Database > Reverse Engineer, seleccionar la conexion
+   y el esquema portal_empleo_inclusivo_diagrama, completar el asistente.
+   Guardar el modelo como archivo .mwb.
+
+DIFERENCIA IMPORTANTE
+Workbench genera el modelo de datos (entidad-relacion), NO el diagrama UML
+de casos de uso. Los casos de uso representan actores y sus objetivos.
+Puedes dibujarlos en la herramienta UML que utilices con la siguiente guia.
+
+SISTEMA
+Portal de Empleo Inclusivo (IncluyeLab), orientado al empleo inclusivo en Peru
+y al ODS 10. Mantiene JSP, Servlets, JavaBeans, DAO y MySQL.
+
+ACTORES PRINCIPALES Y FUNCIONES ACTUALES
+Administrador:
+- Iniciar y cerrar sesion.
+- Gestionar usuarios: crear, consultar/buscar, editar datos/rol/estado y eliminar.
+- Gestionar empresas: crear con cuenta vinculada, consultar/buscar, editar y eliminar.
+- Gestionar ofertas: crear, consultar/buscar, editar y cerrar, eliminar.
+- Gestionar postulaciones: crear, consultar/buscar, cambiar estado y eliminar.
+
+Postulante:
+- Registrar una cuenta de postulante.
+- Iniciar y cerrar sesion.
+- Buscar y filtrar ofertas por texto, ubicacion, modalidad, empresa y adaptaciones.
+- Consultar el detalle de una oferta.
+- Postular a una oferta activa.
+- Consultar sus postulaciones y su estado.
+- Guardar o quitar ofertas favoritas en su navegador.
+
+Empresa:
+- Registrar una cuenta de empresa.
+- Iniciar y cerrar sesion.
+- Publicar una oferta con descripcion, modalidad, ubicacion, salario y adaptaciones.
+- Consultar y buscar sus ofertas publicadas.
+
+Funciones publicas (no requieren iniciar sesion):
+- Buscar ofertas y consultar sus detalles.
+- Consultar el directorio de empresas y filtrar por empresa.
+- Ajustar alto contraste, fuente legible y texto ampliado.
+- Guardar favoritos locales en el navegador.
+Estas funciones tambien pueden utilizarse antes de registrarse.
+
+REGLAS QUE DEBE RESPETAR EL DIAGRAMA Y SU ESPECIFICACION
+- La gestion administrativa es exclusiva de un administrador activo.
+- No hay registro publico de administradores.
+- Una persona no debe postular dos veces a la misma oferta.
+- La oferta debe estar activa al registrar una postulacion.
+- Solo el administrador cambia estados de postulaciones actualmente.
+- Editar una postulacion conserva su postulante y oferta originales.
+- Eliminar exige confirmacion. Las dependencias bloquean borrados.
+- El administrador no puede eliminar ni desactivar su propia cuenta.
+- Crear empresa desde el administrador crea tambien su cuenta.
+- Eliminar empresa no elimina automaticamente la cuenta vinculada.
+- Favoritos y preferencias de accesibilidad se guardan en localStorage,
+  no en MySQL ni sincronizados entre dispositivos.
+- La existencia de perfiles_postulantes NO significa que haya una pantalla
+  para editar CV o perfil: no presentar esa funcion como implementada.
+- El panel Empresa no incluye gestion de candidatos ni cambio de estados.
+- No hay ventas, pagos ni citas en este proyecto.
+
+REFERENCIAS DEL CODIGO PARA EL INFORME
+src/main/java/com/incluyelab/servlet/AdminServlet.java: gestion administrativa.
+src/main/java/com/incluyelab/dao/AdminDAO.java: escrituras y reglas del CRUD.
+src/main/java/com/incluyelab/servlet/RegistroServlet.java: registro.
+src/main/java/com/incluyelab/servlet/LoginServlet.java: acceso por rol.
+src/main/java/com/incluyelab/servlet/OfertaServlet.java: publicacion de ofertas.
+src/main/java/com/incluyelab/servlet/PostularServlet.java: postulacion.
+src/main/java/com/incluyelab/servlet/PostulanteServlet.java: seguimiento.
+src/main/java/com/incluyelab/servlet/EmpresaServlet.java: panel de empresa.
+src/main/webapp/assets/js/app.js: filtros, favoritos y accesibilidad.
+
+TABLAS Y RELACIONES
+usuarios: cuenta, rol y estado.
+empresas: perfil de empresa, relacionado con usuarios.
+perfiles_postulantes: datos de perfil, relacionado con usuarios.
+ofertas: oportunidades laborales, relacionadas con empresas.
+postulaciones: relacion entre usuarios y ofertas, con estado y fecha.
+
+Claves foraneas:
+empresas.id_usuario -> usuarios.id_usuario
+perfiles_postulantes.id_usuario -> usuarios.id_usuario
+ofertas.id_empresa -> empresas.id_empresa
+postulaciones.id_usuario -> usuarios.id_usuario
+postulaciones.id_oferta -> ofertas.id_oferta
+
+El esquema actual no declara UNIQUE en empresas.id_usuario ni en
+perfiles_postulantes.id_usuario: no dibujar esas relaciones como 1:1
+obligatorias a nivel de base de datos.
+No asumir un numero de casos de uso igual al numero de tablas.
+Autenticacion puede describirse como precondicion de las acciones protegidas;
+no agregar relaciones include/extend sin una justificacion funcional.

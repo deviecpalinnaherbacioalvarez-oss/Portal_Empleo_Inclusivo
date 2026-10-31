@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-16T02:21:11.378Z",
+  "checks": [
+    "CSS, fuentes, iconos y 13 logos locales cargan; ofertas provenientes de MySQL",
+    "Búsqueda, modalidad, adaptaciones, empresa, orden y restauración de filtros",
+    "Guardadas persistentes en este navegador y eliminación",
+    "Detalle correcto de cada oferta, cierre por botón y Escape",
+    "Accesibilidad persistente entre pantallas y mostrar/ocultar contraseña",
+    "Responsive 390/768/1440px, menú móvil y texto ampliado sin desbordes",
+    "Registro y login empresa/postulante, publicación y postulación confirmados con SELECT en MySQL; repetición bloqueada",
+    "Ingreso administrativo y filtros de tablas",
+    "Sin errores JavaScript ni recursos HTTP fallidos",
+    "Solo los registros temporales de esta prueba fueron eliminados"
+  ],
+  "errors": []
+}

@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-16T02:24:36.124Z",
+  "checks": [
+    "Usuarios: crear y editar guardan en MySQL; clave vacia conserva la anterior; alerta Bootstrap funcional",
+    "Empresas: alta crea cuenta vinculada y edicion conserva la cuenta existente",
+    "Ofertas: crear y editar reflejan los cambios en MySQL y en el portal publico",
+    "Postulaciones: crear y cambiar estado persiste y se muestra al postulante; este no tiene permisos de CRUD",
+    "Eliminar pide confirmacion; cancelar no modifica datos; dependencias bloquean eliminaciones destructivas",
+    "Servidor valida CSRF, roles, salario, correos, duplicados, IDs y protege la propia cuenta administrativa",
+    "Panel y formularios Bootstrap adaptables a 390/768/1440 px y accesibilidad conservada",
+    "Eliminar funciona para las cuatro entidades sin dependencias; persistencia confirmada con SELECT",
+    "Sin errores JavaScript ni recursos HTTP fallidos"
+  ],
+  "errors": []
+}

@@ -1,0 +1,21 @@
+const fs=require('fs'),path=require('path'),assert=require('node:assert/strict');
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+const base='http://localhost:8084/Portal_Empleo_Inclusivo',out=path.join(__dirname,'../verification');
+(async()=>{fs.mkdirSync(out,{recursive:true});const browser=await chromium.launch({channel:'msedge',headless:true});const errors=[];
+try{
+ const guest=await browser.newContext();assert.match((await guest.request.get(base+'/perfil-profesional',{maxRedirects:0})).headers().location,/login/);
+ const postulante=await browser.newContext({viewport:{width:1440,height:1000}});let r=await postulante.request.post(base+'/login',{form:{correo:'sofia@correo.com',contrasena:'123456'},maxRedirects:0});assert.equal(r.status(),302);
+ const p=await postulante.newPage();p.on('pageerror',e=>errors.push(e.message));await p.goto(base+'/perfil');await p.waitForURL('**/perfil-profesional');await p.waitForLoadState('networkidle');
+ assert(await p.getByRole('heading',{name:'Acerca de',exact:true}).isVisible());assert(await p.getByRole('heading',{name:'Experiencia',exact:true}).isVisible());assert(await p.getByRole('heading',{name:'Educación',exact:true}).isVisible());assert(await p.getByRole('heading',{name:'Licencias y certificaciones',exact:true}).isVisible());
+ assert.equal(await p.locator('input[type=file][accept*="pdf"]').count(),1);assert.equal(await p.locator('input[type=file][accept*="image/jpeg"]').count(),1);assert.equal(await p.locator('.candidate-photo').count(),1);assert.equal(await p.getByText('Imagen ficticia creada con IA').count(),1);
+ assert(await p.getByText(/Estudiante de Ingeniería de Sistemas/).count()>0);assert(await p.getByText('Proyecto académico IncluyeLab',{exact:true}).count()>0);assert.equal(await p.locator('img[alt="Foto de perfil de Sofia Ramirez"]').count(),1);
+ await p.screenshot({path:path.join(out,'perfil-profesional-1440.png'),fullPage:true});
+ await p.setViewportSize({width:390,height:900});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await p.screenshot({path:path.join(out,'perfil-profesional-390.png'),fullPage:true});
+ assert.match((await postulante.request.get(base+'/empresa',{maxRedirects:0})).headers().location,/postulante/);
+ const empresa=await browser.newContext({viewport:{width:1440,height:1000}});r=await empresa.request.post(base+'/login',{form:{correo:'empresa@incluyelab.pe',contrasena:'123456'},maxRedirects:0});assert.equal(r.status(),302);
+ const e=await empresa.newPage();e.on('pageerror',x=>errors.push(x.message));await e.goto(base+'/empresa');await e.waitForLoadState('networkidle');
+ assert(await e.getByRole('heading',{name:/Seguimiento de postulaciones/}).isVisible());assert(await e.locator('#candidate-table').isVisible());assert(await e.locator('button[value="en revision"]').count()>0);assert(await e.locator('button[value="aceptado"]').count()>0);assert(await e.locator('button[value="rechazado"]').count()>0);
+ const candidateLink=e.locator('#candidate-table a[href*="candidato"]').first();assert(await candidateLink.count());await candidateLink.click();await e.waitForLoadState('networkidle');assert(await e.getByRole('heading',{name:'Decisión de la empresa'}).isVisible());
+ await e.screenshot({path:path.join(out,'candidato-empresa-1440.png'),fullPage:true});await e.setViewportSize({width:390,height:900});assert(await e.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+ assert.deepEqual(errors,[]);console.log('Perfil profesional, CV, permisos y seguimiento empresarial verificados en solo lectura.');
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

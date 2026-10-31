@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IncluyeLab - Modelo de datos</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #eef3f5; color: #102a3a; font-family: Inter, Arial, sans-serif; }
+    .canvas { position: relative; width: 2200px; height: 1650px; margin: 0 auto; background: #f8fbfc; overflow: hidden; }
+    header { position: absolute; inset: 0 0 auto 0; height: 112px; padding: 27px 42px; background: #082b3a; color: white; border-bottom: 8px solid #ffd84d; }
+    h1 { margin: 0; font-size: 34px; letter-spacing: 0; }
+    header p { margin: 8px 0 0; color: #cce7e8; font-size: 17px; }
+    .legend { position: absolute; right: 42px; top: 28px; display: flex; gap: 12px; }
+    .legend span { padding: 9px 12px; border: 1px solid #7fa5ad; border-radius: 5px; font-size: 14px; background: #103f50; }
+    .domain { position: absolute; top: 126px; height: 38px; padding: 9px 16px; border-radius: 4px; color: white; font-size: 15px; font-weight: 800; text-transform: uppercase; }
+    .d-profile { left: 42px; width: 890px; background: #b81f68; }
+    .d-core { left: 952px; width: 690px; background: #008c91; }
+    .d-ops { left: 1662px; width: 496px; background: #315a91; }
+    svg.links { position: absolute; left: 0; top: 0; width: 2200px; height: 1650px; pointer-events: none; }
+    .link { fill: none; stroke: #607d86; stroke-width: 3; }
+    .link.profile { stroke: #b81f68; }
+    .link.core { stroke: #008c91; }
+    .link.ops { stroke: #315a91; }
+    .link-dot { fill: #f8fbfc; stroke-width: 3; }
+    .relation-label { font: 700 13px Inter, Arial, sans-serif; fill: #284957; paint-order: stroke; stroke: #f8fbfc; stroke-width: 5px; stroke-linejoin: round; }
+    .entity { position: absolute; background: white; border: 2px solid #adc1c7; border-radius: 7px; box-shadow: 0 3px 10px rgba(8,43,58,.10); overflow: hidden; }
+    .entity h2 { margin: 0; padding: 12px 14px; color: white; font-size: 18px; line-height: 1.1; }
+    .entity.profile h2 { background: #b81f68; }
+    .entity.core h2 { background: #008c91; }
+    .entity.ops h2 { background: #315a91; }
+    .entity.identity h2 { background: #082b3a; }
+    .row { display: grid; grid-template-columns: 48px 1fr auto; gap: 8px; min-height: 27px; padding: 5px 11px; border-top: 1px solid #e4ecef; align-items: center; font: 13px Consolas, monospace; }
+    .row:nth-child(odd) { background: #f7fafb; }
+    .key { font: 800 11px Inter, Arial, sans-serif; color: #607d86; }
+    .pk { color: #a15b00; }
+    .fk { color: #006d70; }
+    .type { color: #667b84; font-size: 11px; }
+    .note { position: absolute; left: 42px; bottom: 25px; right: 42px; display: flex; justify-content: space-between; align-items: center; padding: 13px 17px; border: 1px solid #b9cbd0; background: white; border-radius: 6px; font-size: 14px; }
+    .note strong { color: #082b3a; }
+  </style>
+</head>
+<body>
+<main class="canvas">
+  <header>
+    <h1>IncluyeLab | Modelo de datos relacional</h1>
+    <p>Base de datos: portal_empleo_inclusivo · MySQL · Esquema actualizado al 21/10/2026</p>
+    <div class="legend"><span>PK Clave primaria</span><span>FK Clave foránea</span><span>1 : N Relación</span></div>
+  </header>
+
+  <div class="domain d-profile">Perfil y trayectoria del postulante</div>
+  <div class="domain d-core">Usuarios, empresas y empleo</div>
+  <div class="domain d-ops">RR. HH., soporte y avisos</div>
+
+  <svg class="links" viewBox="0 0 2200 1650" aria-hidden="true">
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#607d86"/></marker>
+    </defs>
+    <!-- usuarios a perfil y trayectoria -->
+    <path class="link profile" d="M1110 470 H910 V390 H610" marker-end="url(#arrow)"/>
+    <text class="relation-label" x="820" y="380">1 : 0..1 perfil</text>
+    <path class="link profile" d="M1110 500 H880 V745 H430" marker-end="url(#arrow)"/>
+    <text class="relation-label" x="742" y="735">1 : N experiencias</text>
+    <path class="link profile" d="M1110 530 H900 V1060 H430" marker-end="url(#arrow)"/>
+    <text class="relation-label" x="730" y="1050">1 : N educación</text>
+    <path class="link profile" d="M1110 560 H930 V1320 H430" marker-end="url(#arrow)"/>
+    <text class="relation-label" x="718" y="1310">1 : N certificaciones</text>
+
+    <!-- núcleo de empleo -->
+    <path class="link core" d="M1380 470 H1475 V500" marker-end="url(#arrow)"/>
+    <path class="link core" d="M1475 775 V850" marker-end="url(#arrow)"/>
+    <text class="relation-label" x="1490" y="820">1 : N ofertas</text>
+    <path class="link core" d="M1475 1118 V1190" marker-end="url(#arrow)"/>
+    <text class="relation-label" x="1490" y="1160">1 : N postulaciones</text>
+    <path class="link core" d="M1380 590 H1410 V1290 H1335" marker-end="url(#arrow)"/>
+    <text class="relation-label" x="1210" y="1280">usuario presenta</text>
+
+    <!-- operaciones -->
+    <path class="link ops" d="M1380 410 H1690 V350" marker-end="url(#arrow)"/>
+    <path class="link ops" d="M1380 440 H1730 V680" marker-end="url(#arrow)"/>
+    <text class="relation-label" x="1705" y="480">crea / atiende / afecta</text>
+    <path class="link ops" d="M1660 1320 H1740 V1240" marker-end="url(#arrow)"/>
+    <text class="relation-label" x="1662" y="1308">1 : N evaluaciones</text>
+    <path class="link ops" d="M1380 620 H1700 V1180 H1740" marker-end="url(#arrow)"/>
+    <text class="relation-label" x="1530" y="1168">RR. HH. evalúa</text>
+  </svg>
+
+  <section class="entity identity" style="left:1110px;top:205px;width:270px;height:470px">
+    <h2>usuarios</h2>
+    <div class="row"><span class="key pk">PK</span><span>id_usuario</span><span class="type">INT</span></div>
+    <div class="row"><span></span><span>nombre</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span>UQ</span><span>correo</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>contrasena</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>rol</span><span class="type">ENUM</span></div>
+    <div class="row"><span></span><span>estado</span><span class="type">ENUM</span></div>
+    <div class="row"><span></span><span>fecha_registro</span><span class="type">DATETIME</span></div>
+    <div class="row"><span></span><span>intentos_fallidos</span><span class="type">TINYINT</span></div>
+    <div class="row"><span></span><span>bloqueado_hasta</span><span class="type">DATETIME</span></div>
+    <div class="row"><span></span><span>requiere_cambio_clave</span><span class="type">BOOLEAN</span></div>
+  </section>
+
+  <section class="entity profile" style="left:42px;top:205px;width:568px;height:455px">
+    <h2>perfiles_postulantes</h2>
+    <div class="row"><span class="key pk">PK</span><span>id_perfil</span><span class="type">INT</span></div>
+    <div class="row"><span class="key fk">FK/UQ</span><span>id_usuario</span><span class="type">INT</span></div>
+    <div class="row"><span></span><span>dni · telefono</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>habilidades</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>tipo_discapacidad</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>adaptacion_requerida</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>experiencia</span><span class="type">TEXT</span></div>
+    <div class="row"><span></span><span>titular · ubicacion</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>acerca_de</span><span class="type">TEXT</span></div>
+    <div class="row"><span></span><span>foto_url</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>cv_nombre · cv_archivo</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>cv_actualizado</span><span class="type">DATETIME</span></div>
+  </section>
+
+  <section class="entity profile" style="left:42px;top:705px;width:388px;height:255px">
+    <h2>experiencias_postulante</h2>
+    <div class="row"><span class="key pk">PK</span><span>id_experiencia</span><span class="type">INT</span></div>
+    <div class="row"><span class="key fk">FK</span><span>id_usuario</span><span class="type">INT</span></div>
+    <div class="row"><span></span><span>cargo</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>organizacion</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>fecha_inicio · fecha_fin</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>descripcion</span><span class="type">VARCHAR</span></div>
+  </section>
+
+  <section class="entity profile" style="left:42px;top:1010px;width:388px;height:255px">
+    <h2>educacion_postulante</h2>
+    <div class="row"><span class="key pk">PK</span><span>id_educacion</span><span class="type">INT</span></div>
+    <div class="row"><span class="key fk">FK</span><span>id_usuario</span><span class="type">INT</span></div>
+    <div class="row"><span></span><span>institucion</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>carrera</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>fecha_inicio · fecha_fin</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>descripcion</span><span class="type">VARCHAR</span></div>
+  </section>
+
+  <section class="entity profile" style="left:42px;top:1310px;width:388px;height:190px">
+    <h2>certificaciones_postulante</h2>
+    <div class="row"><span class="key pk">PK</span><span>id_certificacion</span><span class="type">INT</span></div>
+    <div class="row"><span class="key fk">FK</span><span>id_usuario</span><span class="type">INT</span></div>
+    <div class="row"><span></span><span>nombre · emisor</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>fecha_emision</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>credencial_url</span><span class="type">VARCHAR</span></div>
+  </section>
+
+  <section class="entity core" style="left:1430px;top:205px;width:212px;height:570px">
+    <h2>empresas</h2>
+    <div class="row"><span class="key pk">PK</span><span>id_empresa</span><span class="type">INT</span></div>
+    <div class="row"><span class="key fk">FK</span><span>id_usuario</span><span class="type">INT</span></div>
+    <div class="row"><span></span><span>razon_social</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>ruc · sector</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>sello_inclusivo</span><span class="type">ENUM</span></div>
+    <div class="row"><span></span><span>logo_url</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>estado_revision</span><span class="type">ENUM</span></div>
+    <div class="row"><span></span><span>presentacion</span><span class="type">TEXT</span></div>
+    <div class="row"><span></span><span>anio_inicio</span><span class="type">INT</span></div>
+    <div class="row"><span></span><span>logros</span><span class="type">TEXT</span></div>
+    <div class="row"><span></span><span>motivo_revision</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>version_revision</span><span class="type">INT</span></div>
+    <div class="row"><span></span><span>fecha_revision</span><span class="type">DATETIME</span></div>
+    <div class="row"><span></span><span>revisor_id</span><span class="type">INT</span></div>
+  </section>
+
+  <section class="entity core" style="left:1120px;top:850px;width:540px;height:268px">
+    <h2>ofertas</h2>
+    <div class="row"><span class="key pk">PK</span><span>id_oferta</span><span class="type">INT</span></div>
+    <div class="row"><span class="key fk">FK</span><span>id_empresa</span><span class="type">INT</span></div>
+    <div class="row"><span></span><span>titulo · modalidad · ubicacion</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>adaptaciones · apoyos</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>descripcion</span><span class="type">TEXT</span></div>
+    <div class="row"><span></span><span>salario</span><span class="type">DECIMAL</span></div>
+    <div class="row"><span></span><span>estado · fecha_publicacion</span><span class="type">ENUM/DATE</span></div>
+  </section>
+
+  <section class="entity core" style="left:1120px;top:1190px;width:540px;height:205px">
+    <h2>postulaciones</h2>
+    <div class="row"><span class="key pk">PK</span><span>id_postulacion</span><span class="type">INT</span></div>
+    <div class="row"><span class="key fk">FK</span><span>id_usuario</span><span class="type">INT</span></div>
+    <div class="row"><span class="key fk">FK</span><span>id_oferta</span><span class="type">INT</span></div>
+    <div class="row"><span></span><span>estado</span><span class="type">ENUM</span></div>
+    <div class="row"><span></span><span>fecha_postulacion</span><span class="type">DATETIME</span></div>
+  </section>
+
+  <section class="entity ops" style="left:1740px;top:205px;width:418px;height:240px">
+    <h2>notificaciones</h2>
+    <div class="row"><span class="key pk">PK</span><span>id_notificacion</span><span class="type">INT</span></div>
+    <div class="row"><span class="key fk">FK</span><span>id_usuario</span><span class="type">INT</span></div>
+    <div class="row"><span></span><span>tipo</span><span class="type">ENUM</span></div>
+    <div class="row"><span></span><span>titulo · mensaje</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>leida</span><span class="type">BOOLEAN</span></div>
+    <div class="row"><span></span><span>fecha_creacion</span><span class="type">DATETIME</span></div>
+  </section>
+
+  <section class="entity ops" style="left:1740px;top:505px;width:418px;height:535px">
+    <h2>incidencias_soporte</h2>
+    <div class="row"><span class="key pk">PK</span><span>id_incidencia</span><span class="type">INT</span></div>
+    <div class="row"><span class="key fk">FK</span><span>id_creador</span><span class="type">INT</span></div>
+    <div class="row"><span class="key fk">FK</span><span>id_responsable</span><span class="type">INT</span></div>
+    <div class="row"><span class="key fk">FK</span><span>id_usuario_afectado</span><span class="type">INT</span></div>
+    <div class="row"><span></span><span>correo</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>titulo · descripcion</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>origen · categoria</span><span class="type">ENUM</span></div>
+    <div class="row"><span></span><span>prioridad · decision</span><span class="type">ENUM</span></div>
+    <div class="row"><span></span><span>estado</span><span class="type">ENUM</span></div>
+    <div class="row"><span></span><span>solucion</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>fecha_creacion</span><span class="type">DATETIME</span></div>
+    <div class="row"><span></span><span>fecha_actualizacion</span><span class="type">DATETIME</span></div>
+  </section>
+
+  <section class="entity ops" style="left:1740px;top:1090px;width:418px;height:365px">
+    <h2>evaluaciones_rrhh</h2>
+    <div class="row"><span class="key pk">PK</span><span>id_evaluacion</span><span class="type">INT</span></div>
+    <div class="row"><span class="key fk">FK/UQ</span><span>id_postulacion</span><span class="type">INT</span></div>
+    <div class="row"><span class="key fk">FK/UQ</span><span>id_evaluador</span><span class="type">INT</span></div>
+    <div class="row"><span></span><span>observaciones · resultado</span><span class="type">VARCHAR/ENUM</span></div>
+    <div class="row"><span></span><span>estado · etapa</span><span class="type">ENUM</span></div>
+    <div class="row"><span></span><span>puntaje_cv · entrevista</span><span class="type">TINYINT</span></div>
+    <div class="row"><span></span><span>puntaje_desempeno</span><span class="type">TINYINT</span></div>
+    <div class="row"><span></span><span>porcentaje_compatibilidad</span><span class="type">TINYINT</span></div>
+    <div class="row"><span></span><span>retroalimentacion</span><span class="type">VARCHAR</span></div>
+    <div class="row"><span></span><span>fechas creación/actualización</span><span class="type">DATETIME</span></div>
+  </section>
+
+  <div class="note"><span><strong>Lectura:</strong> la punta de cada flecha señala la tabla dependiente que contiene la clave foránea.</span><span>Fuente: portal_empleo_inclusivo_DATOS_ACTUALES.sql</span></div>
+</main>
+</body>
+</html>

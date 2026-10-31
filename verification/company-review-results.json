@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-16T21:14:38.262Z",
+  "readOnly": true,
+  "checks": [
+    "Administrador: listado de solicitudes, ficha y alta directa de empresas retirada",
+    "Empresa: formulario propio con presentacion, sector, trayectoria y logros",
+    "Fichas publicas, permisos GET, logos, vistas adaptables y accesibilidad comprobados",
+    "11 ofertas originales visibles; no se crearon ni editaron registros"
+  ],
+  "errors": [],
+  "pending": "Prueba de escritura de registro, aprobacion/rechazo y publicacion no ejecutada por indicacion del usuario."
+}

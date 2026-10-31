@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-16T02:23:40.463Z",
+  "checks": [
+    "Sin sesion: paneles y JSP protegidos redirigen; escrituras devuelven 403",
+    "Empresa: redireccion al panel correcto, aislamiento de roles, cookie HttpOnly y sesion renovada",
+    "Apoyos guardados en MySQL; filtros exactos, combinacion AND, URL, vacios y limpiar; sin inferir por texto",
+    "Cerrar sesion invalida la cookie; cuenta inactiva y cambio de rol revocan acceso existente",
+    "Administrador edita los 13 apoyos, puede quitarlos; filtros reflejan cambios tras recargar",
+    "Sidebar y formularios adaptables; accesibilidad conservada; sin errores JavaScript"
+  ],
+  "errors": []
+}

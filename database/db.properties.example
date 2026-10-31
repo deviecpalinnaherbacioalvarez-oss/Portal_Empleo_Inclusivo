@@ -1,0 +1,3 @@
+DB_URL=jdbc:mysql://localhost:3306/portal_empleo_inclusivo?useSSL=false&serverTimezone=America/Lima&allowPublicKeyRetrieval=true
+DB_USER=incluyelab_app
+DB_PASSWORD=CAMBIAR_POR_LA_CLAVE_CONFIGURADA

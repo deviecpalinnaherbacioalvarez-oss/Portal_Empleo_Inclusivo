@@ -1,0 +1,104 @@
+{
+  "utp": {
+    "file": "utp.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:UTP-logo.svg"
+  },
+  "claro": {
+    "file": "claro.png",
+    "source": "https://www.claro.com.pe/portal/pe/recursos_tema_evo/assets/internal/icon-touch-144.png"
+  },
+  "upn": {
+    "file": "upn.svg",
+    "source": "https://www.upn.edu.pe/sites/default/files/logo-upn-nuevo.svg"
+  },
+  "rimac": {
+    "file": "rimac.png",
+    "source": "https://www.rimac.com/js/apple-touch-icon.png"
+  },
+  "yape": {
+    "file": "yape.png",
+    "source": "https://www.yape.com.pe/images/components/component-25/logo.png"
+  },
+  "entel": {
+    "file": "entel.webp",
+    "source": "https://entel.cdn.modyo.com/uploads/c75391f7-024a-49a2-99da-d388658a25d0/original/favicon-entel-180x180.webp"
+  },
+  "tottus": {
+    "file": "tottus.png",
+    "source": "https://images.falabella.com/v3/assets/blt7c5c2f2f888a7cc3/blt731539d15505e022/Tottus@192px.png"
+  },
+  "sodimac": {
+    "file": "sodimac.png",
+    "source": "https://images.sodimac.com/v3/assets/blt6a203fe6c6a9b6dd/bltcf215412183f0b18/Sodimac192.png"
+  },
+  "bcp": {
+    "file": "bcp.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/0/0d/Logo-bcp-vector.svg"
+  },
+  "alicorp": {
+    "file": "alicorp.png",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/1/16/Alicorp_Logo_2023.png"
+  },
+  "interbank": {
+    "file": "interbank.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/c/ca/Interbank_logo.svg"
+  },
+  "movistar": {
+    "file": "movistar.svg",
+    "source": "https://cert-cdn.movistar.com.pe/2024/12/logo-2.svg"
+  },
+  "inkafarma": {
+    "file": "inkafarma.png",
+    "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Logo_de_Inkafarma.png"
+  },
+  "microsoft": {
+    "file": "microsoft.png",
+    "source": "https://uhf.microsoft.com/images/microsoft/RE1Mu3b.png",
+    "website": "https://www.microsoft.com/es-pe/"
+  },
+  "amazon": {
+    "file": "amazon.png",
+    "source": "https://www.aboutamazon.com/_next/static/media/apple-touch-icon.706b1b87.png",
+    "website": "https://www.aboutamazon.com/"
+  },
+  "walmart": {
+    "file": "walmart.svg",
+    "source": "https://corporate.walmart.com/content/dam/corporate/site-images/WMT-Spark-New-SparkYellow-RGB.svg",
+    "website": "https://corporate.walmart.com/"
+  },
+  "mercadolibre": {
+    "file": "mercadolibre.png",
+    "source": "https://news.mercadolibre.com/themes/custom/mercadolibre/logo.png",
+    "website": "https://news.mercadolibre.com/"
+  },
+  "falabella": {
+    "file": "falabella.png",
+    "source": "https://images.falabella.com/v3/assets/blt7c5c2f2f888a7cc3/bltde5263bea5336415/Logo%20favicon@144px.png",
+    "website": "https://www.falabella.com.pe/"
+  },
+  "acciona": {
+    "file": "acciona.jpg",
+    "source": "https://www.acciona.com/content/dam/accionacom/media/1371193/acciona_oglogo.jpg",
+    "website": "https://www.acciona.com/es/"
+  },
+  "internacional": {
+    "file": "internacional.png",
+    "source": "https://clinicainternacional.com.pe/assets/logos/logo.png",
+    "website": "https://www.clinicainternacional.com.pe/"
+  },
+  "sanpablo": {
+    "file": "sanpablo.png",
+    "source": "https://www.sanpablo.com.pe/wp-content/uploads/2024/05/LogoSPSurco.png",
+    "website": "https://www.sanpablo.com.pe/"
+  },
+  "pardos": {
+    "file": "pardos.png",
+    "source": "https://www.pardoschicken.pe/assets/images/pardos.svg",
+    "website": "https://www.pardoschicken.pe/"
+  },
+  "sap": {
+    "file": "sap.svg",
+    "source": "https://developers.sap.com/img/sap-logo.svg",
+    "website": "https://www.sap.com/"
+  }
+}

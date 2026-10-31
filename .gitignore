@@ -1,0 +1,28 @@
+# Maven
+/target/
+*.class
+
+# NetBeans local
+/nbproject/private/
+/build/
+/dist/
+
+# Configuracion privada y secretos
+db.properties
+*.env
+.env
+
+# Archivos subidos fuera del codigo fuente
+/uploads/
+/carnets-conadis/
+
+# Copias de base y paquetes generados
+*.sql.bak
+backup_*.sql
+*.zip
+
+# Sistema operativo e IDE
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
