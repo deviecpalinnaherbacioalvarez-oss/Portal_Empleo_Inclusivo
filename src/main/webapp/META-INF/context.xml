@@ -1,3 +1,3 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- El nombre de contexto lo determina el WAR. La conexion se configura fuera del repositorio. -->
-<Context/>
+<!-- NetBeans necesita el atributo path para desplegar en Tomcat. La conexion se configura fuera del repositorio. -->
+<Context path="/Portal_Empleo_Inclusivo"/>

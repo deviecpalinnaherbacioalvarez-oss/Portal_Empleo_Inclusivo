@@ -1,3 +1,4 @@
+SET SQL_SAFE_UPDATES = 0;
 CREATE DATABASE IF NOT EXISTS portal_empleo_inclusivo CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS 'incluyelab_app'@'localhost' IDENTIFIED BY '123456';
 GRANT ALL PRIVILEGES ON portal_empleo_inclusivo.* TO 'incluyelab_app'@'localhost';
