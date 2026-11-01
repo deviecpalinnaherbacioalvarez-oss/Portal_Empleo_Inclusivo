@@ -116,8 +116,8 @@ La guia completa para otra computadora esta en `docs/INSTALACION_WINDOWS.md`.
 - `/registro`: registro de usuarios con inicio de flujo OTP.
 - `/verificar-correo`: verificacion de direccion de correo mediante codigo OTP de 6 digitos.
 - `/verificacion-conadis`: flujo de verificacion de identidad digital con carnet CONADIS para postulantes.
-- `/conadis-foto`: visor seguro de carnet CONADIS para titular y administrador.
-- `/revision-conadis`: revision y aprobacion o rechazo administrativo de solicitudes CONADIS.
+- `/conadis-foto`: visor seguro de carnet CONADIS para su titular y Recursos Humanos.
+- `/revision-conadis`: revision, aprobacion, rechazo o vencimiento exclusivo de Recursos Humanos.
 - `/postulante`: panel del postulante (requiere verificacion CONADIS aprobada).
 - `/empresa`: panel de empresa.
 - `/admin`: panel administrador.
@@ -145,10 +145,10 @@ La guia completa para otra computadora esta en `docs/INSTALACION_WINDOWS.md`.
 - **Propósito**: Garantizar la autenticidad del correo electrónico registrado y prevenir cuentas fantasmas o no autorizadas.
 - **Mecanismo de Seguridad**:
   - Al registrarse una cuenta, se crea un código OTP numérico de 6 dígitos mediante `java.security.SecureRandom`.
-  - El código se almacena en la tabla `codigos_otp` con una vigencia de 15 minutos y límite de hasta 5 intentos fallidos antes de bloquearse para mitigar ataques de fuerza bruta.
+  - Solo se almacena el hash PBKDF2 del código en `codigos_otp`, con vigencia de 15 minutos y límite de 5 intentos.
 - **Ruta y Experiencia de Usuario**:
   - `/verificar-correo`: Interfaz con 6 casillas numéricas con avance automático al escribir, soporte para pegar (Ctrl+V) y temporizador de expiración.
-  - **Modo Demostración Académica**: Para la sustentación sin requerir servidores SMTP externos, la interfaz incluye un panel que visualiza el código generado en MySQL y permite autocompletarlo con un solo clic.
+  - El código se entrega al correo mediante SMTP y nunca se muestra ni se autocompleta en la web. Configura `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASSWORD`, `MAIL_FROM` y, opcionalmente, `MAIL_STARTTLS` en Tomcat o en el entorno.
   - **Control de Acceso**: `SesionFilter` y `LoginServlet` exigen la validación del correo (`correo_verificado = 1`) antes de permitir el acceso al resto de las funciones del sistema.
 - La tabla OTP vigente forma parte del instalador y de la actualizacion consolidada.
 
@@ -291,9 +291,9 @@ Desde `/perfil` ingresan la clave actual, una nueva de 8 a 100 caracteres y su
 confirmacion. El cambio se guarda en MySQL; luego deben iniciar sesion nuevamente.
 Las otras sesiones de la misma cuenta se revocan en su siguiente solicitud.
 
-Las nuevas claves se almacenan con PBKDF2-HMAC-SHA256 y sal aleatoria, tanto desde
-perfil como desde registro y administracion. Las cuentas anteriores siguen
-funcionando con su clave actual hasta que la cambien. No hay migracion de tablas.
+Todas las claves, incluidas las cuentas académicas incluidas en el instalador, se
+almacenan con PBKDF2-HMAC-SHA256, 600000 iteraciones y sal aleatoria. La actualización
+consolidada migra las credenciales de demostración que aún estén en texto plano.
 
 Prueba automatizada: `tools/verify-password.cjs` (requiere `PLAYWRIGHT_MODULE` y
 `PORTAL_DB_PASSWORD`). Usa cuentas temporales que elimina al terminar, sin crear

@@ -3,6 +3,7 @@ package com.incluyelab.servlet;
 import com.incluyelab.dao.OtpDAO;
 import com.incluyelab.dao.OtpDAO.ResultadoOtp;
 import com.incluyelab.model.Usuario;
+import com.incluyelab.service.CorreoOtpService;
 import java.io.IOException;
 import java.sql.SQLException;
 import javax.servlet.ServletException;
@@ -12,6 +13,7 @@ import javax.servlet.http.*;
 @WebServlet(name = "VerificacionCorreoServlet", urlPatterns = {"/verificar-correo"})
 public class VerificacionCorreoServlet extends HttpServlet {
     private final OtpDAO otpDao = new OtpDAO();
+    private final CorreoOtpService correoService = new CorreoOtpService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
@@ -31,17 +33,19 @@ public class VerificacionCorreoServlet extends HttpServlet {
 
         try {
             // Asegurar que exista un código OTP pendiente activo
-            String codigoPendiente = otpDao.obtenerCodigoPendiente(usuario.getIdUsuario(), "VERIFICACION_CORREO");
-            if (codigoPendiente == null) {
-                codigoPendiente = otpDao.generarOtp(usuario.getIdUsuario(), usuario.getCorreo(), "VERIFICACION_CORREO");
+            if (!otpDao.existeOtpPendiente(usuario.getIdUsuario(), "VERIFICACION_CORREO")) {
+                generarYEnviar(usuario);
             }
 
             req.setAttribute("correoEnmascarado", enmascararCorreo(usuario.getCorreo()));
-            req.setAttribute("codigoDemo", codigoPendiente);
+            Object aviso = session.getAttribute("otpAviso");
+            if (aviso != null) { req.setAttribute("aviso", aviso); session.removeAttribute("otpAviso"); }
             req.getRequestDispatcher("/WEB-INF/verificar-correo.jsp").forward(req, res);
-        } catch (SQLException ex) {
+        } catch (SQLException | IllegalStateException ex) {
             log("Error al consultar código OTP", ex);
-            res.sendError(503, "No se pudo generar el código de verificación.");
+            req.setAttribute("error", "No se pudo enviar el código al correo registrado. Revisa la configuración de correo o inténtalo nuevamente.");
+            req.setAttribute("correoEnmascarado", enmascararCorreo(usuario.getCorreo()));
+            req.getRequestDispatcher("/WEB-INF/verificar-correo.jsp").forward(req, res);
         }
     }
 
@@ -59,9 +63,10 @@ public class VerificacionCorreoServlet extends HttpServlet {
         String accion = req.getParameter("accion");
         if ("reenviar".equalsIgnoreCase(accion)) {
             try {
-                otpDao.generarOtp(usuario.getIdUsuario(), usuario.getCorreo(), "VERIFICACION_CORREO");
+                generarYEnviar(usuario);
+                session.setAttribute("otpAviso", "Enviamos un nuevo código al correo registrado.");
                 res.sendRedirect(req.getContextPath() + "/verificar-correo?reenviado=ok");
-            } catch (SQLException ex) {
+            } catch (SQLException | IllegalStateException ex) {
                 log("Error al reenviar código OTP", ex);
                 req.setAttribute("error", "No se pudo generar un nuevo código. Intenta en un momento.");
                 doGet(req, res);
@@ -102,6 +107,11 @@ public class VerificacionCorreoServlet extends HttpServlet {
             req.setAttribute("error", "Error interno al verificar el código. Intenta nuevamente.");
             doGet(req, res);
         }
+    }
+
+    private void generarYEnviar(Usuario usuario) throws SQLException {
+        String codigo = otpDao.generarOtp(usuario.getIdUsuario(), usuario.getCorreo(), "VERIFICACION_CORREO");
+        correoService.enviar(usuario.getCorreo(), codigo);
     }
 
     private String panel(Usuario u) {

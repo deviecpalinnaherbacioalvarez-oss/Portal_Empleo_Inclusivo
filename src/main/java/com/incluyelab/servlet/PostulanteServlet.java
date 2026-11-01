@@ -20,6 +20,7 @@ public class PostulanteServlet extends HttpServlet {
         if (!"POSTULANTE".equals(usuario.getRol())) { response.sendError(403,"Acceso exclusivo para postulantes."); return; }
         try {
             if(request.getSession().getAttribute("postulacionCsrf")==null) request.getSession().setAttribute("postulacionCsrf",java.util.UUID.randomUUID().toString());
+            if(request.getSession().getAttribute("notifCsrf")==null) request.getSession().setAttribute("notifCsrf",java.util.UUID.randomUUID().toString());
             request.setAttribute("ofertas", new OfertaDAO().listarActivas());
             request.setAttribute("postulaciones", new PostulacionDAO().listarPorUsuario(usuario.getIdUsuario()));
             request.setAttribute("notificaciones",new com.incluyelab.dao.NotificacionDAO().listar(usuario.getIdUsuario()));

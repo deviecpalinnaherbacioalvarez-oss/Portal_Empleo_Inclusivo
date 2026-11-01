@@ -16,7 +16,7 @@ public class CandidatoServlet extends HttpServlet {
         boolean rrhh=rutaRrhh&&"RECURSOS_HUMANOS".equals(u.getRol());
         boolean empresa=!rutaRrhh&&"EMPRESA".equals(u.getRol());
         if(!rrhh&&!empresa){res.sendError(403);return;}
-        try{int id=Integer.parseInt(req.getParameter("id"));Postulacion p=rrhh?new PostulacionDAO().obtenerPorId(id):new PostulacionDAO().obtenerParaEmpresa(id,u.getIdUsuario());if(p==null){res.sendError(404);return;}req.setAttribute("vistaRrhh",rrhh);req.setAttribute("postulacion",p);req.setAttribute("perfilProfesional",new PerfilPostulanteDAO().obtener(p.getIdUsuario()));if(!rrhh)req.setAttribute("evaluacionesRrhh",new RecursosHumanosDAO().evaluacionesPublicadasPostulacion(id,u.getIdUsuario()));req.getRequestDispatcher("/WEB-INF/candidato.jsp").forward(req,res);}
+        try{int id=Integer.parseInt(req.getParameter("id"));if(rrhh&&!new RecursosHumanosDAO().puedeConsultarExpediente(u.getIdUsuario(),id)){res.sendError(403,"Debes registrar una evaluación antes de consultar el expediente privado.");return;}Postulacion p=rrhh?new PostulacionDAO().obtenerPorId(id):new PostulacionDAO().obtenerParaEmpresa(id,u.getIdUsuario());if(p==null){res.sendError(404);return;}req.setAttribute("vistaRrhh",rrhh);req.setAttribute("postulacion",p);req.setAttribute("perfilProfesional",new PerfilPostulanteDAO().obtener(p.getIdUsuario()));if(!rrhh)req.setAttribute("evaluacionesRrhh",new RecursosHumanosDAO().evaluacionesPublicadasPostulacion(id,u.getIdUsuario()));req.getRequestDispatcher("/WEB-INF/candidato.jsp").forward(req,res);}
         catch(NumberFormatException ex){res.sendError(404);}catch(java.sql.SQLException ex){log("No se pudo abrir candidato",ex);res.sendError(503);}
     }
 }

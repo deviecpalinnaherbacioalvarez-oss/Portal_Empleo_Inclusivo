@@ -49,6 +49,10 @@ public class AdminDAO {
         }
     }
 
+    public void darBaja(int id,int actor)throws SQLException {
+        try(Connection cn=Conexion.getConnection()){cn.setAutoCommit(false);try{autorizar(cn,actor);if(id==actor)throw new IllegalArgumentException("No puedes desactivar tu propia cuenta.");try(PreparedStatement ps=cn.prepareStatement("UPDATE usuarios SET estado='inactivo',bloqueado_hasta=NULL WHERE id_usuario=? AND estado='activo'")){ps.setInt(1,id);if(ps.executeUpdate()!=1)throw new IllegalArgumentException("La cuenta ya está inactiva o no existe.");}cn.commit();}catch(SQLException|RuntimeException ex){cn.rollback();throw ex;}}
+    }
+
     private void guardarUsuario(Connection cn, int id, Map<String, String> v, int actor) throws SQLException {
         String rol = v.get("rol");
         if (!Roles.esValido(rol)) throw new IllegalArgumentException("Rol no autorizado.");

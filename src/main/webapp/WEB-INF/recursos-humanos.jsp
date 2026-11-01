@@ -1,5 +1,5 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@page import="java.util.List,java.util.ArrayList,java.util.Collections,com.incluyelab.model.Usuario,com.incluyelab.model.Postulacion,com.incluyelab.model.EvaluacionRRHH"%>
+<%@page import="java.util.List,java.util.ArrayList,java.util.Collections,java.util.Set,java.util.HashSet,com.incluyelab.model.Usuario,com.incluyelab.model.Postulacion,com.incluyelab.model.EvaluacionRRHH"%>
 <%@include file="jspf/helpers.jspf"%>
 <%
     Usuario usuario = (Usuario) session.getAttribute("usuario");
@@ -16,7 +16,9 @@
     int totalEvaluaciones = evaluaciones.size();
     int recomendados = 0;
     int sumaCompatibilidad = 0;
+    Set<Integer> expedientesAsignados = new HashSet<Integer>();
     for (EvaluacionRRHH ev : evaluaciones) {
+        expedientesAsignados.add(ev.getIdPostulacion());
         if ("APROBADO".equals(ev.getResultado())) recomendados++;
         sumaCompatibilidad += ev.getPorcentajeCompatibilidad();
     }
@@ -151,10 +153,12 @@
                             <% } %>
                         </td>
                         <td>
-                            <% if (c.getCvNombre() != null && !c.getCvNombre().isEmpty()) { %>
+                            <% if (c.getCvNombre() != null && !c.getCvNombre().isEmpty() && expedientesAsignados.contains(c.getIdPostulacion())) { %>
                                 <a class="btn btn-sm" target="_blank" href="<%=request.getContextPath()%>/cv?postulacion=<%=c.getIdPostulacion()%>" title="Abrir CV en PDF">
                                     <i data-lucide="file-text" aria-hidden="true"></i> Abrir CV
                                 </a>
+                            <% } else if (c.getCvNombre() != null && !c.getCvNombre().isEmpty()) { %>
+                                <span class="muted">Disponible al registrar la evaluación</span>
                             <% } else { %>
                                 <span class="badge" style="background:var(--teal-soft);color:var(--muted);">Sin archivo</span>
                             <% } %>
@@ -169,9 +173,9 @@
                                 <button type="button" class="btn btn-sm primary" onclick="iniciarEvaluacion('<%=c.getIdPostulacion()%>', '<%=h(c.getPostulante())%> · <%=h(c.getOferta())%> · <%=h(c.getEmpresa())%>')" title="Calificar a este postulante">
                                     <i data-lucide="user-check" aria-hidden="true"></i> Evaluar
                                 </button>
-                                <a class="btn btn-sm" href="<%=request.getContextPath()%>/recursos-humanos/candidato?id=<%=c.getIdPostulacion()%>" title="Ver perfil integral y adaptaciones">
+                                <% if(expedientesAsignados.contains(c.getIdPostulacion())){ %><a class="btn btn-sm" href="<%=request.getContextPath()%>/recursos-humanos/candidato?id=<%=c.getIdPostulacion()%>" title="Ver perfil integral y adaptaciones">
                                     <i data-lucide="eye" aria-hidden="true"></i> Perfil
-                                </a>
+                                </a><% } %>
                             </div>
                         </td>
                     </tr>

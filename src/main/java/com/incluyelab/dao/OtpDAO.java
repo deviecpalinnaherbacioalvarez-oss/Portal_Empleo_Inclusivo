@@ -1,6 +1,7 @@
 package com.incluyelab.dao;
 
 import com.incluyelab.config.Conexion;
+import com.incluyelab.security.Passwords;
 import java.security.SecureRandom;
 import java.sql.*;
 
@@ -53,17 +54,8 @@ public class OtpDAO {
                         "VALUES(?, ?, ?, ?, 0, 'PENDIENTE', DATE_ADD(NOW(), INTERVAL 15 MINUTE))")) {
                     ps.setInt(1, idUsuario);
                     ps.setString(2, correo.trim().toLowerCase());
-                    ps.setString(3, codigo);
+                    ps.setString(3, Passwords.hash(codigo));
                     ps.setString(4, tipo);
-                    ps.executeUpdate();
-                }
-
-                // Registrar notificación de respaldo
-                try (PreparedStatement ps = cn.prepareStatement(
-                        "INSERT INTO notificaciones(id_usuario, tipo, titulo, mensaje) " +
-                        "VALUES(?, 'REPORTE_SOPORTE', 'Código OTP de verificación', ?)")) {
-                    ps.setInt(1, idUsuario);
-                    ps.setString(2, "Tu código de verificación de 6 dígitos es: " + codigo + " (Vigencia: 15 minutos).");
                     ps.executeUpdate();
                 }
 
@@ -128,7 +120,7 @@ public class OtpDAO {
                     return ResultadoOtp.error("Has superado el límite de intentos fallidos. Solicita un nuevo código OTP.");
                 }
 
-                if (!codigoReal.equals(codigoIngresado)) {
+                if (!Passwords.matches(codigoIngresado, codigoReal)) {
                     int nuevosIntentos = intentos + 1;
                     String nuevoEstado = nuevosIntentos >= 5 ? "BLOQUEADO" : "PENDIENTE";
                     try (PreparedStatement ps = cn.prepareStatement("UPDATE codigos_otp SET intentos=?, estado=? WHERE id_otp=?")) {
@@ -162,20 +154,16 @@ public class OtpDAO {
         }
     }
 
-    /**
-     * Obtiene el código OTP pendiente para propósitos de demostración académica / testing.
-     */
-    public String obtenerCodigoPendiente(int idUsuario, String tipo) throws SQLException {
+    public boolean existeOtpPendiente(int idUsuario, String tipo) throws SQLException {
         if (tipo == null || tipo.trim().isEmpty()) tipo = "VERIFICACION_CORREO";
-        String sql = "SELECT codigo FROM codigos_otp WHERE id_usuario=? AND tipo=? AND estado='PENDIENTE' AND NOW() <= fecha_expiracion ORDER BY id_otp DESC LIMIT 1";
+        String sql = "SELECT 1 FROM codigos_otp WHERE id_usuario=? AND tipo=? AND estado='PENDIENTE' AND NOW() <= fecha_expiracion ORDER BY id_otp DESC LIMIT 1";
         try (Connection cn = Conexion.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setInt(1, idUsuario);
             ps.setString(2, tipo);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getString("codigo");
+                return rs.next();
             }
         }
-        return null;
     }
 }

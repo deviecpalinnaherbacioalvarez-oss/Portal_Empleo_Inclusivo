@@ -11,8 +11,8 @@
     <div class="accessibility-intro">
         <p class="eyebrow teal">TALENTO SIN BARRERAS</p>
         <h1>Accesibilidad en IncluyeLab</h1>
-        <p>Estas son las 13 necesidades contempladas por el proyecto. Por ahora está disponible la ayuda visual: lectura por voz, navegación por flechas, alto contraste y texto grande, desde la barra superior.</p>
-        <p class="muted">Las demás funciones de la tabla están planificadas. La lectura por voz utiliza la voz disponible en tu navegador; puedes detenerla en cualquier momento.</p>
+        <p>IncluyeLab combina preferencias visuales, navegación por teclado, lectura por voz y filtros de apoyos laborales para responder a 13 grupos de necesidades sin solicitar un diagnóstico médico.</p>
+        <p class="muted">Cada fila describe una ayuda que ya puede comprobarse en el portal. Los apoyos de una vacante dependen de lo declarado por la empresa; el portal no los presume ni los certifica.</p>
     </div>
     <section aria-labelledby="catalogo-accesibilidad">
         <h2 id="catalogo-accesibilidad">Discapacidades y necesidades de accesibilidad</h2>
@@ -35,8 +35,8 @@
             </table>
         </div>
     </section>
-    <p>La selección de múltiples necesidades para personalizar la navegación y ampliar los filtros de empleo está prevista para una siguiente etapa. Los apoyos laborales que ya declaran las empresas siguen disponibles en el buscador.</p>
-    <p class="muted">No necesitas declarar un diagnóstico para utilizar la ayuda visual.</p>
+    <p>En el buscador puedes combinar varias adaptaciones y modalidades. Las preferencias de contraste, fuente y tamaño de texto se conservan en el navegador.</p>
+    <p class="muted">No necesitas declarar un diagnóstico para utilizar ninguna ayuda de navegación.</p>
     <a class="btn primary" href="<%=request.getContextPath()%>/inicio#ofertas">Explorar empleos</a>
 </main>
 <%@include file="jspf/footer.jspf"%>

@@ -98,28 +98,22 @@ public class VerificacionConadisDAO {
         if(idVerificacion!=null&&!"RECHAZADA".equals(estadoActual)&&!"VENCIDA".equals(estadoActual))throw new IllegalArgumentException("Tu solicitud está pendiente o aprobada y no admite un nuevo envío.");
 
         if(idVerificacion==null){
-            try(PreparedStatement ps=cn.prepareStatement("INSERT INTO verificaciones_conadis(id_usuario,rui,carnet_archivo,estado,observacion_sistema,revision_rrhh,fecha_envio) VALUES(?,?,?,'PENDIENTE','Pendiente de revisión manual por Recursos Humanos.',1,NOW())",Statement.RETURN_GENERATED_KEYS)){ps.setInt(1,usuario);ps.setString(2,rui);ps.setString(3,archivo);ps.executeUpdate();try(ResultSet rs=ps.getGeneratedKeys()){if(!rs.next())throw new SQLException("No se generó la solicitud.");idVerificacion=rs.getInt(1);}}
+            try(PreparedStatement ps=cn.prepareStatement("INSERT INTO verificaciones_conadis(id_usuario,rui,carnet_archivo,estado,observacion_sistema,revision_rrhh,fecha_envio,consentimiento_datos_at) VALUES(?,?,?,'PENDIENTE','Pendiente de revisión manual por Recursos Humanos.',1,NOW(),NOW())",Statement.RETURN_GENERATED_KEYS)){ps.setInt(1,usuario);ps.setString(2,rui);ps.setString(3,archivo);ps.executeUpdate();try(ResultSet rs=ps.getGeneratedKeys()){if(!rs.next())throw new SQLException("No se generó la solicitud.");idVerificacion=rs.getInt(1);}}
         }else{
             registrarHistorial(cn,idVerificacion,estadoActual,"Solicitud anterior conservada antes del reenvío",null,"ARCHIVADA_POR_REENVIO");
-            try(PreparedStatement ps=cn.prepareStatement("UPDATE verificaciones_conadis SET rui=?,carnet_archivo=?,dni=NULL,apellidos=NULL,nombres=NULL,fecha_caducidad=NULL,id_discapacidad=NULL,estado='PENDIENTE',metodo=NULL,motivo='',observacion_sistema='Pendiente de revisión manual por Recursos Humanos.',id_revisor=NULL,fecha_revision=NULL,envios=envios+1,fecha_envio=NOW(),revision_rrhh=1 WHERE id_verificacion=?")){ps.setString(1,rui);ps.setString(2,archivo);ps.setInt(3,idVerificacion);ps.executeUpdate();}
+            try(PreparedStatement ps=cn.prepareStatement("UPDATE verificaciones_conadis SET rui=?,carnet_archivo=?,dni=NULL,apellidos=NULL,nombres=NULL,fecha_caducidad=NULL,id_discapacidad=NULL,estado='PENDIENTE',metodo=NULL,motivo='',observacion_sistema='Pendiente de revisión manual por Recursos Humanos.',id_revisor=NULL,fecha_revision=NULL,envios=envios+1,fecha_envio=NOW(),consentimiento_datos_at=NOW(),revision_rrhh=1 WHERE id_verificacion=?")){ps.setString(1,rui);ps.setString(2,archivo);ps.setInt(3,idVerificacion);ps.executeUpdate();}
         }
         registrarHistorial(cn,idVerificacion,"PENDIENTE","",null,"SOLICITUD_ENVIADA");
         return new ResultadoEnvio("PENDIENTE");
     }
 
-    public List<String[]> discapacidades()throws SQLException {
-        List<String[]> lista=new ArrayList<>();
-        try(Connection cn=Conexion.getConnection();PreparedStatement ps=cn.prepareStatement("SELECT id_discapacidad,nombre FROM discapacidades ORDER BY id_discapacidad");ResultSet rs=ps.executeQuery()){while(rs.next())lista.add(new String[]{rs.getString(1),rs.getString(2)});}
-        return lista;
-    }
-
-    public void revisar(int usuario,String decision,String motivo,int revisor,String rui,String dni,String apellidos,String nombres,String fecha,int discapacidad)throws SQLException {
+    public void revisar(int usuario,String decision,String motivo,int revisor,String rui,String dni,String apellidos,String nombres,String fecha)throws SQLException {
         boolean aprobar="aprobar".equals(decision);boolean rechazar="rechazar".equals(decision);boolean vencer="vencer".equals(decision);
         if(!aprobar&&!rechazar&&!vencer)throw new IllegalArgumentException("Selecciona una decisión válida.");
         String observacion=motivo==null?"":motivo.trim();
         if(observacion.length()>1000||((rechazar||vencer)&&observacion.length()<10))throw new IllegalArgumentException("Explica el rechazo o vencimiento con entre 10 y 1000 caracteres.");
         LocalDate caducidad=null;
-        if(aprobar){rui=ConadisValidator.rui(rui);dni=ConadisValidator.dni(dni);apellidos=ConadisValidator.nombre(apellidos,"Apellidos");nombres=ConadisValidator.nombre(nombres,"Nombres");caducidad=ConadisValidator.caducidad(fecha);if(discapacidad<1||discapacidad>13)throw new IllegalArgumentException("Selecciona una discapacidad del catálogo.");}
+        if(aprobar){rui=ConadisValidator.rui(rui);dni=ConadisValidator.dni(dni);apellidos=ConadisValidator.nombre(apellidos,"Apellidos");nombres=ConadisValidator.nombre(nombres,"Nombres");caducidad=ConadisValidator.caducidad(fecha);}
 
         try(Connection cn=Conexion.getConnection()){cn.setAutoCommit(false);try{
             autorizarRevisor(cn,revisor);
@@ -132,10 +126,9 @@ public class VerificacionConadisDAO {
                 if(!rui.equals(ruiRegistrado))throw new IllegalArgumentException("El RUI revisado no coincide con el enviado por el postulante.");
                 try(PreparedStatement ps=cn.prepareStatement("SELECT 1 FROM verificaciones_conadis WHERE id_usuario<>? AND (rui=? OR dni=?) LIMIT 1")){ps.setInt(1,usuario);ps.setString(2,rui);ps.setString(3,dni);try(ResultSet rs=ps.executeQuery()){if(rs.next())throw new IllegalArgumentException("El RUI o DNI ya está asociado a otra cuenta.");}}
                 if(verificadorOficial.estaDisponible()&&verificadorOficial.verificar(rui,dni)==VerificadorConadisOficial.Resultado.NO_COINCIDE)throw new IllegalArgumentException("El servicio oficial configurado no confirmó los datos. No se puede aprobar.");
-                String tipo;try(PreparedStatement ps=cn.prepareStatement("SELECT nombre FROM discapacidades WHERE id_discapacidad=?")){ps.setInt(1,discapacidad);try(ResultSet rs=ps.executeQuery()){if(!rs.next())throw new IllegalArgumentException("Discapacidad no válida.");tipo=rs.getString(1);}}
-                try(PreparedStatement ps=cn.prepareStatement("INSERT INTO perfiles_postulantes(id_usuario,dni,tipo_discapacidad,id_discapacidad) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE dni=VALUES(dni),tipo_discapacidad=VALUES(tipo_discapacidad),id_discapacidad=VALUES(id_discapacidad)")){ps.setInt(1,usuario);ps.setString(2,dni);ps.setString(3,tipo);ps.setInt(4,discapacidad);ps.executeUpdate();}
+                try(PreparedStatement ps=cn.prepareStatement("INSERT INTO perfiles_postulantes(id_usuario,dni) VALUES(?,?) ON DUPLICATE KEY UPDATE dni=VALUES(dni)")){ps.setInt(1,usuario);ps.setString(2,dni);ps.executeUpdate();}
                 try(PreparedStatement ps=cn.prepareStatement("UPDATE usuarios SET nombre=? WHERE id_usuario=?")){ps.setString(1,nombres+" "+apellidos);ps.setInt(2,usuario);ps.executeUpdate();}
-                try(PreparedStatement ps=cn.prepareStatement("UPDATE verificaciones_conadis SET dni=?,apellidos=?,nombres=?,fecha_caducidad=?,id_discapacidad=?,estado='APROBADA',metodo='MANUAL',motivo=?,id_revisor=?,fecha_revision=NOW(),revision_rrhh=1,observacion_sistema='Revisión manual completada por Recursos Humanos; no equivale a una consulta oficial en línea.' WHERE id_verificacion=?")){ps.setString(1,dni);ps.setString(2,apellidos);ps.setString(3,nombres);ps.setObject(4,caducidad);ps.setInt(5,discapacidad);ps.setString(6,observacion);ps.setInt(7,revisor);ps.setInt(8,idVerificacion);ps.executeUpdate();}
+                try(PreparedStatement ps=cn.prepareStatement("UPDATE verificaciones_conadis SET dni=?,apellidos=?,nombres=?,fecha_caducidad=?,id_discapacidad=NULL,estado='APROBADA',metodo='MANUAL',motivo=?,id_revisor=?,fecha_revision=NOW(),revision_rrhh=1,observacion_sistema='Revisión manual completada por Recursos Humanos; no equivale a una consulta oficial en línea.' WHERE id_verificacion=?")){ps.setString(1,dni);ps.setString(2,apellidos);ps.setString(3,nombres);ps.setObject(4,caducidad);ps.setString(5,observacion);ps.setInt(6,revisor);ps.setInt(7,idVerificacion);ps.executeUpdate();}
                 registrarHistorial(cn,idVerificacion,"APROBADA",observacion,revisor,"REVISION_MANUAL");
             }else{
                 String nuevoEstado=rechazar?"RECHAZADA":"VENCIDA";

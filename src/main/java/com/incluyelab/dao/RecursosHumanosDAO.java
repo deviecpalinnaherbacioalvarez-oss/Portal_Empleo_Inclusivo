@@ -77,6 +77,15 @@ public class RecursosHumanosDAO {
         return listarEvaluaciones(SELECT_EVALUACION+"WHERE p.id_postulacion=? AND e.id_usuario=? AND v.estado='PUBLICADO' ORDER BY v.fecha_actualizacion DESC",postulacion,usuarioEmpresa);
     }
 
+    public boolean puedeConsultarExpediente(int actor,int postulacion)throws SQLException {
+        String sql="SELECT 1 FROM evaluaciones_rrhh v JOIN usuarios u ON u.id_usuario=v.id_evaluador "
+                +"WHERE v.id_evaluador=? AND v.id_postulacion=? AND u.rol='RECURSOS_HUMANOS' AND u.estado='activo'";
+        try(Connection cn=Conexion.getConnection();PreparedStatement ps=cn.prepareStatement(sql)){
+            ps.setInt(1,actor);ps.setInt(2,postulacion);
+            try(ResultSet rs=ps.executeQuery()){return rs.next();}
+        }
+    }
+
     public void guardar(int actor,int id,int postulacion,String observaciones,String retroalimentacion,String resultado,String estado,String etapa,int cv,int entrevista,int desempeno,int compatibilidad) throws SQLException {
         texto(observaciones,4000,"observaciones");opcional(retroalimentacion,4000,"retroalimentacion");
         if(!Arrays.asList("PENDIENTE","APROBADO","NO_APROBADO").contains(resultado)||!Arrays.asList("BORRADOR","PUBLICADO").contains(estado)||!Arrays.asList("REVISION_CV","ENTREVISTA","DESEMPENO","FINAL").contains(etapa))throw new IllegalArgumentException("Selecciona una etapa, veredicto y estado válidos.");

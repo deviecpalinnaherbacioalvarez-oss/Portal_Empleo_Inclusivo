@@ -8,6 +8,6 @@ WHERE e.id_empresa=1 AND e.razon_social='TechForGood Peru'
   AND u.correo='empresa@incluyelab.pe' AND u.nombre='TechForGood Peru';
 UPDATE empresas e INNER JOIN usuarios u ON u.id_usuario=e.id_usuario
 SET e.razon_social='Microsoft',e.logo_url='assets/logos/microsoft.png',
-    e.ruc='00000000000',e.sello_inclusivo='Pendiente'
+    e.razon_social='Microsoft Peru',e.ruc='20254138577',e.sello_inclusivo='Pendiente'
 WHERE e.id_empresa=1 AND e.razon_social='TechForGood Peru' AND u.correo='empresa@incluyelab.pe';
 COMMIT;

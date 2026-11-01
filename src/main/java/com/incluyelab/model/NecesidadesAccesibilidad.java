@@ -14,40 +14,40 @@ public final class NecesidadesAccesibilidad {
             "JavaScript con SpeechSynthesis, CSS para contraste y HTML compatible con lectores de pantalla.", true),
         new Necesidad("fisica_motora", "Física o motora",
             "Navegación sin mouse, filtros de trabajo remoto y accesibilidad física.",
-            "Eventos de teclado en JavaScript y filtros relacionados con los datos de las empresas.", false),
+            "Controles utilizables con teclado, foco visible y filtros de rampas, ascensores y modalidad remota.", true),
         new Necesidad("auditiva", "Auditiva (sordera o hipoacusia)",
-            "Subtítulos, entrevistas por chat y videos en Lengua de Señas Peruana (LSP).",
-            "Chat con backend, videos subtitulados y contenido grabado con intérpretes de LSP.", false),
+            "Búsqueda de ofertas con subtítulos, comunicación escrita e intérprete de LSP declarado.",
+            "Filtros conectados con los apoyos publicados por cada empresa.", true),
         new Necesidad("intelectual", "Intelectual",
-            "Formularios sencillos, instrucciones habladas, imágenes y postulación paso a paso.",
-            "HTML y JavaScript con formularios divididos en etapas, pictogramas y lectura por voz.", false),
+            "Formularios sencillos, registro por pasos e instrucciones directas.",
+            "Registro dividido en etapas, mensajes de validación y lectura por voz opcional.", true),
         new Necesidad("habla", "Dificultades del habla (afasia, disartria, etc.)",
-            "Entrevistas escritas, respuestas predeterminadas y comunicación mediante texto a voz.",
-            "Chat y botones de comunicación aumentativa y alternativa (CAA), usando SpeechSynthesis.", false),
+            "Canales escritos y lectura en voz alta del contenido del portal.",
+            "Formulario de soporte escrito y herramienta SpeechSynthesis del navegador.", true),
         new Necesidad("autismo_sensorial", "Autismo con necesidades sensoriales",
-            "Filtros de ruido, iluminación, interacción social y organización del ambiente laboral.",
-            "Campos adicionales en la base de datos y filtros dinámicos en JavaScript.", false),
+            "Filtros de bajo estímulo, indicaciones escritas y metodologías visuales.",
+            "Categorías de apoyo consultadas directamente desde las ofertas en MySQL.", true),
         new Necesidad("dislexia", "Dislexia y dificultades de lectura",
             "Lectura por audio, texto simplificado, ajuste de fuente y espaciado.",
-            "CSS personalizable, JavaScript y explicaciones redactadas en lenguaje sencillo.", false),
+            "Fuente legible, texto ampliado, espaciado estable y lectura por voz.", true),
         new Necesidad("movilidad_manual", "Movilidad manual muy limitada",
-            "Comandos de voz y navegación mediante una sola tecla o pulsador.",
-            "API SpeechRecognition donde sea compatible, además de navegación accesible para dispositivos de asistencia.", false),
+            "Navegación completa con teclado, objetivos táctiles amplios y enlace para saltar al contenido.",
+            "HTML semántico, foco visible y controles de al menos 44 por 44 píxeles.", true),
         new Necesidad("sordoceguera", "Sordoceguera",
             "Navegación textual accesible, soporte para lectores de pantalla y líneas braille.",
-            "HTML semántico, etiquetas accesibles, navegación completa por teclado y pruebas con tecnologías de asistencia.", false),
+            "HTML semántico, etiquetas accesibles y navegación completa por teclado.", true),
         new Necesidad("psicosocial", "Psicosocial",
             "Filtros de horarios flexibles, teletrabajo y posibilidad de solicitar ajustes durante entrevistas.",
-            "Nuevos campos del perfil laboral y filtros de condiciones de trabajo en la base de datos.", false),
+            "Filtros de modalidad remota, horario flexible y apoyos declarados por la empresa.", true),
         new Necesidad("tdah", "TDAH con necesidades de apoyo",
             "Modo sin distracciones, tareas divididas en pasos y recordatorios de postulación.",
-            "CSS para interfaz simplificada, JavaScript para seguimiento de pasos y notificaciones opcionales.", false),
+            "Interfaz estable, formularios por pasos y notificaciones que pueden marcarse como leídas.", true),
         new Necesidad("cronicas_fatiga", "Discapacidades asociadas a condiciones crónicas o fatiga",
             "Filtrar trabajos flexibles, descansos disponibles y opciones remotas.",
-            "Registrar características de jornada y adaptaciones ofrecidas por cada empresa; conectarlas con el buscador.", false),
+            "Filtros de trabajo remoto, flexibilidad y pausas ofrecidas en cada vacante.", true),
         new Necesidad("fotosensibilidad", "Fotosensibilidad o sensibilidad a estímulos visuales",
             "Desactivar animaciones, evitar destellos y ofrecer un modo visual tranquilo.",
-            "CSS con prefers-reduced-motion y controles de accesibilidad personalizables.", false)
+            "Respeto de prefers-reduced-motion y controles de accesibilidad personalizables.", true)
     ));
 
     public static List<Necesidad> catalogo() { return CATALOGO; }
@@ -74,6 +74,6 @@ public final class NecesidadesAccesibilidad {
         public String getFunciones() { return funciones; }
         public String getImplementacion() { return implementacion; }
         public boolean isDisponible() { return disponible; }
-        public String getEstado() { return disponible ? "Disponible: ayuda visual" : "Planificado"; }
+        public String getEstado() { return disponible ? "Disponible" : "En evaluación"; }
     }
 }

@@ -13,6 +13,7 @@
     --font:'Ubuntu',Arial,sans-serif; 
     color-scheme:light; 
 }
+
 * { box-sizing:border-box; letter-spacing:0; }
 html { scroll-behavior:smooth; scroll-padding-top:24px; }
 body { margin:0; color:var(--ink); background:var(--bg); font-family:var(--font); font-size:1.05rem; line-height:1.6; }
@@ -759,4 +760,17 @@ main.container.auth-layout.register-layout { max-width: 1040px; grid-template-co
 @media (max-width: 680px) {
     .register-layout #step-1 { grid-template-columns: minmax(0, 1fr); }
     .register-layout .register-password-help .password-rules { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Mantener estas reglas al final para que prevalezcan sobre componentes heredados. */
+.form-control,.form-select,.offer-card,.company-tile,.accessibility-table-wrap { border-color:#718585; }
+.icon-btn,.save-job { width:44px; min-width:44px; height:44px; }
+.a11y-controls button,.text-button,.text-link { min-height:44px; }
+.check input { width:22px; height:22px; min-height:22px; flex-basis:22px; }
+.ods-mark span,.company-identity small,.salary,.adaptations strong,.adaptations p,.offer-bottom,.offer-bottom .text-link { font-size:.875rem; }
+.notification-unread { border-left:4px solid var(--magenta); }
+.notification-read { opacity:.78; }
+.consent-check { color:var(--ink); font-size:1rem; padding:12px; border:1px solid #718585; border-radius:5px; }
+@media(max-width:560px) {
+    .accessibility-bar,.a11y-controls button,.large-text .a11y-controls button { font-size:.875rem; }
 }

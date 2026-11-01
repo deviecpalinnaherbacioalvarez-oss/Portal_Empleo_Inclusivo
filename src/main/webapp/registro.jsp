@@ -113,6 +113,7 @@
                 </div>
 
                 <p class="muted" id="aviso-revision-rrhh">Su carnet será revisado por RRHH.</p>
+                <label class="check consent-check"><input type="checkbox" name="consentimientoDatos" value="si" required> Autorizo el tratamiento del RUI, DNI y fotografía del carnet exclusivamente para verificar mi acceso al portal, conforme a la Ley 29733. Puedo consultar el estado y solicitar soporte sobre estos datos.</label>
                 <div class="step-actions">
                     <button class="btn btn-outline" type="button" onclick="goToStep1()">
                         <i data-lucide="arrow-left" aria-hidden="true"></i> Volver

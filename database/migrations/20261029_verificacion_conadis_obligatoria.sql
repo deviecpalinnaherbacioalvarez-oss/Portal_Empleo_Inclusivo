@@ -11,6 +11,11 @@ DROP TRIGGER IF EXISTS bi_conadis_obligatoria;
 DROP TRIGGER IF EXISTS bu_conadis_obligatoria;
 DROP TRIGGER IF EXISTS bd_conadis_auditada;
 
+SET @sql_consentimiento=IF((SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='verificaciones_conadis' AND column_name='consentimiento_datos_at')=0,'ALTER TABLE verificaciones_conadis ADD COLUMN consentimiento_datos_at DATETIME NULL','SELECT 1');
+PREPARE stmt_consentimiento FROM @sql_consentimiento; EXECUTE stmt_consentimiento; DEALLOCATE PREPARE stmt_consentimiento;
+UPDATE verificaciones_conadis SET consentimiento_datos_at=COALESCE(fecha_envio,NOW()) WHERE consentimiento_datos_at IS NULL;
+ALTER TABLE verificaciones_conadis MODIFY consentimiento_datos_at DATETIME NOT NULL;
+
 UPDATE verificaciones_conadis
 SET estado='RECHAZADA',metodo=NULL,
     motivo='Registro legado sin revisión manual. Vuelve a enviar el RUI y la fotografía.',
@@ -82,7 +87,8 @@ CREATE TRIGGER bi_conadis_obligatoria BEFORE INSERT ON verificaciones_conadis FO
 BEGIN
     IF NEW.estado<>'PENDIENTE' OR NEW.id_revisor IS NOT NULL
        OR NEW.rui IS NULL OR TRIM(NEW.rui)=''
-       OR NEW.carnet_archivo IS NULL OR TRIM(NEW.carnet_archivo)='' THEN
+       OR NEW.carnet_archivo IS NULL OR TRIM(NEW.carnet_archivo)=''
+       OR NEW.consentimiento_datos_at IS NULL THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='La solicitud inicial requiere RUI, fotografia y estado PENDIENTE.';
     END IF;
 END$$
@@ -105,7 +111,7 @@ BEGIN
     END IF;
     IF NEW.estado='APROBADA' AND (NEW.metodo IS NULL OR NEW.metodo<>'MANUAL' OR NEW.dni IS NULL
        OR NEW.nombres IS NULL OR NEW.apellidos IS NULL OR NEW.fecha_caducidad IS NULL
-       OR NEW.fecha_caducidad<CURDATE() OR NEW.id_discapacidad IS NULL OR NEW.fecha_revision IS NULL) THEN
+       OR NEW.fecha_caducidad<CURDATE() OR NEW.consentimiento_datos_at IS NULL OR NEW.fecha_revision IS NULL) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='La aprobacion manual requiere datos completos y vigentes.';
     END IF;
 END$$

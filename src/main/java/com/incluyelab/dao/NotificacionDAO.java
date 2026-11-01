@@ -20,6 +20,10 @@ public class NotificacionDAO {
         }
         return lista;
     }
+    public void marcarLeida(int usuario,int id)throws SQLException {
+        String sql=id==0?"UPDATE notificaciones SET leida=1 WHERE id_usuario=? AND leida=0":"UPDATE notificaciones SET leida=1 WHERE id_usuario=? AND id_notificacion=?";
+        try(Connection cn=Conexion.getConnection();PreparedStatement ps=cn.prepareStatement(sql)){ps.setInt(1,usuario);if(id>0)ps.setInt(2,id);ps.executeUpdate();}
+    }
     private Notificacion mapear(ResultSet rs)throws SQLException {
         Notificacion n=new Notificacion();
         n.setIdNotificacion(rs.getInt("id_notificacion"));

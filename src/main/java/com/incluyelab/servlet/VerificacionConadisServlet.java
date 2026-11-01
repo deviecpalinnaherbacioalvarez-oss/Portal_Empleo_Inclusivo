@@ -60,6 +60,9 @@ public class VerificacionConadisServlet extends HttpServlet {
         String nombreArchivoFinal = null;
 
         try {
+            if (!"si".equals(req.getParameter("consentimientoDatos"))) {
+                throw new IllegalArgumentException("Debes autorizar el tratamiento de los datos del carnet para reenviar la solicitud.");
+            }
             String rui=ConadisValidator.rui(req.getParameter("rui"));
             nombreArchivoFinal=AlmacenCarnetConadis.guardar(req.getPart("carnetFoto"));
             ResultadoEnvio resultado=dao.enviarSolicitud(usuario.getIdUsuario(),rui,nombreArchivoFinal);

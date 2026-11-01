@@ -52,6 +52,9 @@ public class RegistroServlet extends HttpServlet {
         String rui = null;
         if ("POSTULANTE".equals(rol)) {
             try {
+                if (!"si".equals(request.getParameter("consentimientoDatos"))) {
+                    throw new IllegalArgumentException("Debes autorizar el tratamiento de los datos del carnet para solicitar la verificación CONADIS.");
+                }
                 rui = ConadisValidator.rui(request.getParameter("rui"));
                 nombreArchivoFinal = AlmacenCarnetConadis.guardar(request.getPart("carnetFoto"));
                 archivoGuardado = AlmacenCarnetConadis.resolver(nombreArchivoFinal);
@@ -80,12 +83,19 @@ public class RegistroServlet extends HttpServlet {
             archivoGuardado=null; // La imagen ya pertenece a una cuenta confirmada en la base.
             usuario=new UsuarioDAO().obtenerActivo(nuevoId);
             if(usuario==null)throw new IllegalArgumentException("Cuenta no disponible.");
-            new com.incluyelab.dao.OtpDAO().generarOtp(nuevoId,usuario.getCorreo(),"VERIFICACION_CORREO");
+            String codigoOtp = new com.incluyelab.dao.OtpDAO().generarOtp(nuevoId,usuario.getCorreo(),"VERIFICACION_CORREO");
             // Iniciar sesión y enviar directo a la verificación de correo
             HttpSession anterior=request.getSession(false);if(anterior!=null)anterior.invalidate();
             HttpSession session = request.getSession(true);
             session.setAttribute("usuario", usuario);
             session.setMaxInactiveInterval(30 * 60);
+            try {
+                new com.incluyelab.service.CorreoOtpService().enviar(usuario.getCorreo(), codigoOtp);
+                session.setAttribute("otpAviso", "Enviamos el código al correo registrado.");
+            } catch (IllegalStateException correoEx) {
+                log("La cuenta se creó, pero el OTP no pudo entregarse", correoEx);
+                session.setAttribute("otpAviso", "La cuenta fue creada, pero el correo no pudo entregarse. Configura el servicio SMTP y usa Reenviar código.");
+            }
 
             response.sendRedirect("verificar-correo?registro=ok");
         } catch (Exception ex) {

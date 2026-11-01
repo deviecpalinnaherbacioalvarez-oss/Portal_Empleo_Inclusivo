@@ -135,19 +135,18 @@ public class OfertaDAO {
         try (Connection cn = Conexion.getConnection()) {
             cn.setAutoCommit(false);
             try {
-                try (PreparedStatement ps = cn.prepareStatement("SELECT id_oferta FROM ofertas WHERE id_oferta=? AND id_empresa=? FOR UPDATE")) {
+                try (PreparedStatement ps = cn.prepareStatement("SELECT id_oferta,estado FROM ofertas WHERE id_oferta=? AND id_empresa=? FOR UPDATE")) {
                     ps.setInt(1,idOferta); ps.setInt(2,idEmpresa);
                     try (ResultSet rs=ps.executeQuery()) {
                         if(!rs.next()) throw new IllegalArgumentException("La oferta no existe o no pertenece a tu empresa.");
+                        if("cerrada".equals(rs.getString("estado"))) throw new IllegalArgumentException("La oferta ya se encuentra cerrada.");
                     }
                 }
-                String aviso="La empresa eliminó una oferta a la que habías postulado. Revisa nuevas oportunidades en IncluyeLab.";
-                try(PreparedStatement ps=cn.prepareStatement("INSERT INTO notificaciones(id_usuario,tipo,titulo,mensaje) SELECT p.id_usuario,'OFERTA_ELIMINADA','Oferta eliminada',CONCAT(?, ' Puesto: ',o.titulo) FROM postulaciones p JOIN ofertas o ON o.id_oferta=p.id_oferta WHERE p.id_oferta=?")){ps.setString(1,aviso);ps.setInt(2,idOferta);ps.executeUpdate();}
-                try(PreparedStatement ps=cn.prepareStatement("DELETE v FROM evaluaciones_rrhh v JOIN postulaciones p ON p.id_postulacion=v.id_postulacion WHERE p.id_oferta=?")){ps.setInt(1,idOferta);ps.executeUpdate();}
-                try(PreparedStatement ps=cn.prepareStatement("DELETE FROM postulaciones WHERE id_oferta=?")){ps.setInt(1,idOferta);ps.executeUpdate();}
-                try (PreparedStatement ps=cn.prepareStatement("DELETE FROM ofertas WHERE id_oferta=? AND id_empresa=?")) {
+                String aviso="La empresa cerró una oferta a la que habías postulado. Tu postulación y su historial se conservarán para consulta.";
+                try(PreparedStatement ps=cn.prepareStatement("INSERT INTO notificaciones(id_usuario,tipo,titulo,mensaje) SELECT p.id_usuario,'OFERTA_ELIMINADA','Oferta cerrada',CONCAT(?, ' Puesto: ',o.titulo) FROM postulaciones p JOIN ofertas o ON o.id_oferta=p.id_oferta WHERE p.id_oferta=?")){ps.setString(1,aviso);ps.setInt(2,idOferta);ps.executeUpdate();}
+                try (PreparedStatement ps=cn.prepareStatement("UPDATE ofertas SET estado='cerrada' WHERE id_oferta=? AND id_empresa=?")) {
                     ps.setInt(1,idOferta); ps.setInt(2,idEmpresa);
-                    if(ps.executeUpdate()!=1) throw new IllegalArgumentException("No se pudo eliminar la oferta.");
+                    if(ps.executeUpdate()!=1) throw new IllegalArgumentException("No se pudo cerrar la oferta.");
                 }
                 cn.commit();
             } catch (SQLException | RuntimeException ex) {

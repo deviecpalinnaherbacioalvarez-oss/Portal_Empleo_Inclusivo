@@ -90,21 +90,21 @@ CREATE TABLE IF NOT EXISTS postulaciones (
 );
 
 INSERT IGNORE INTO usuarios(id_usuario, nombre, correo, contrasena, rol) VALUES
-(1, 'Administrador Principal', 'admin@incluyelab.pe', '123456', 'ADMIN'),
-(2, 'Microsoft (cuenta demo)', 'empresa@incluyelab.pe', 'Empresa#2026', 'EMPRESA'),
-(3, 'Sofia Ramirez', 'sofia@correo.com', '123456', 'POSTULANTE'),
-(4, 'Luis Torres', 'luis@correo.com', '123456', 'POSTULANTE'),
-(5, 'Banco de Credito del Peru', 'talento@bcp.com.pe', 'Empresa#2026', 'EMPRESA'),
-(6, 'Interbank', 'empleos@interbank.pe', 'Empresa#2026', 'EMPRESA'),
-(7, 'Alicorp', 'personas@alicorp.com.pe', 'Empresa#2026', 'EMPRESA'),
-(8, 'Rimac Seguros', 'inclusion@rimac.com', 'Empresa#2026', 'EMPRESA'),
-(9, 'Entel Peru', 'talento@entel.pe', 'Empresa#2026', 'EMPRESA'),
-(10, 'Sodimac Peru', 'empleos@sodimac.com.pe', 'Empresa#2026', 'EMPRESA'),
-(11, 'Inkafarma', 'trabaja@inkafarma.pe', 'Empresa#2026', 'EMPRESA'),
-(12, 'Yape', 'talento@yape.com.pe', 'Empresa#2026', 'EMPRESA');
+(1, 'Administrador Principal', 'admin@incluyelab.pe', 'pbkdf2$600000$2CH8nIfc/yqP+TPqd9+GoA==$OliYbqbcbro88wxaRfuVfFqF/XwSPODrm7xBQ2KJcnE=', 'ADMIN'),
+(2, 'Microsoft (cuenta demo)', 'empresa@incluyelab.pe', 'pbkdf2$600000$Tspz0sAvmTpVb42Nw1G/3A==$3UYhUqsqgEcMjzgzuFQ3kmWwWtoxMGPjl3DWFXLaLQ0=', 'EMPRESA'),
+(3, 'Sofia Ramirez', 'sofia@correo.com', 'pbkdf2$600000$LF7QAuI/G8bzb/wzRwp5GQ==$8r8TXXMdU5RhQnIb8pv0vQcSh5D1jiyU6Jq67/imdpY=', 'POSTULANTE'),
+(4, 'Luis Torres', 'luis@correo.com', 'pbkdf2$600000$tvVso/TgcAPdQSrzgIP+IA==$lLAJTbZ1rPg9wwJQIyVUYk3opNdaltMKIhAzC6hHov4=', 'POSTULANTE'),
+(5, 'Banco de Credito del Peru', 'talento@bcp.com.pe', 'pbkdf2$600000$iykm0SperUnojw0Bb41s5Q==$mwj7n0KdxT1VD4eKbI1BXdytfawUzkm+9s3qwU7pQ88=', 'EMPRESA'),
+(6, 'Interbank', 'empleos@interbank.pe', 'pbkdf2$600000$koqscHv6dRkb6kv62WHimw==$g0KdR3S81Sp/Qa33A4aWZPXxfhK4RF+r1kQoUb2CVfk=', 'EMPRESA'),
+(7, 'Alicorp', 'personas@alicorp.com.pe', 'pbkdf2$600000$fr0IERvBvAMF9oBPhROCGA==$bnmWDzu3CU3Bst4EAlGD4lOzPSrvThDms0Bed+Dal8o=', 'EMPRESA'),
+(8, 'Rimac Seguros', 'inclusion@rimac.com', 'pbkdf2$600000$LL4u/ASmDThktht39xC/Kw==$li+li+bv1qcwG/s36T2Wd4vlRwI6HGdh8jWM3/AVzP8=', 'EMPRESA'),
+(9, 'Entel Peru', 'talento@entel.pe', 'pbkdf2$600000$+3tNEFXqHyNunQkZbgph1w==$IaOkajBx2fAmxEwr7kFSl+oaYc+N3K+ihjgkwrVM6uQ=', 'EMPRESA'),
+(10, 'Sodimac Peru', 'empleos@sodimac.com.pe', 'pbkdf2$600000$YY2n8EuhFGYZfblEdpMkQQ==$ogN5r4X68sZzNWOPD6vGpsn6vYrfQHC5kCfnwTUQYSk=', 'EMPRESA'),
+(11, 'Inkafarma', 'trabaja@inkafarma.pe', 'pbkdf2$600000$8B7IQyEyTDLmKiNv0ev1hA==$BYR7sTmY7OXcRs/Lx1YofFYELHMKvsrW9zgOCT3MsEU=', 'EMPRESA'),
+(12, 'Yape', 'talento@yape.com.pe', 'pbkdf2$600000$549MUl5NyviNeX+do7ZkGw==$ZWkEFP9XumOumH6sBfkGAtM7glaGq//eD+YcBobgEhs=', 'EMPRESA');
 
 INSERT IGNORE INTO empresas(id_empresa, id_usuario, razon_social, ruc, sector, logo_url, sello_inclusivo) VALUES
-(1, 2, 'Microsoft', '00000000000', 'Tecnologia', 'assets/logos/microsoft.png', 'Pendiente'),
+(1, 2, 'Microsoft Peru', '20254138577', 'Tecnologia', 'assets/logos/microsoft.png', 'Pendiente'),
 (2, 5, 'BCP', '20100047218', 'Banca', 'https://logo.clearbit.com/bcp.com.pe', 'Certificado'),
 (3, 6, 'Interbank', '20100053455', 'Banca', 'https://logo.clearbit.com/interbank.pe', 'Certificado'),
 (4, 7, 'Alicorp', '20100055237', 'Consumo masivo', 'https://logo.clearbit.com/alicorp.com.pe', 'En revision'),
@@ -118,7 +118,7 @@ UPDATE empresas SET logo_url='https://logo.clearbit.com/bcp.com.pe' WHERE razon_
 UPDATE empresas SET logo_url='https://logo.clearbit.com/interbank.pe' WHERE razon_social='Interbank' AND (logo_url IS NULL OR logo_url='');
 UPDATE empresas SET logo_url='https://logo.clearbit.com/alicorp.com.pe' WHERE razon_social='Alicorp' AND (logo_url IS NULL OR logo_url='');
 UPDATE empresas SET logo_url='https://logo.clearbit.com/rimac.com' WHERE razon_social='Rimac Seguros' AND (logo_url IS NULL OR logo_url='');
-UPDATE empresas SET logo_url=CASE razon_social WHEN 'Microsoft' THEN 'assets/logos/microsoft.png' WHEN 'BCP' THEN 'assets/logos/bcp.svg' WHEN 'Interbank' THEN 'assets/logos/interbank.svg' WHEN 'Alicorp' THEN 'assets/logos/alicorp.png' WHEN 'Rimac Seguros' THEN 'assets/logos/rimac.png' WHEN 'Entel Peru' THEN 'assets/logos/entel.webp' WHEN 'Sodimac Peru' THEN 'assets/logos/sodimac.png' WHEN 'Inkafarma' THEN 'assets/logos/inkafarma.png' WHEN 'Yape' THEN 'assets/logos/yape.png' ELSE logo_url END, sitio_oficial=CASE razon_social WHEN 'Microsoft' THEN 'https://www.microsoft.com/' WHEN 'BCP' THEN 'https://www.viabcp.com/' WHEN 'Interbank' THEN 'https://interbank.pe/' WHEN 'Alicorp' THEN 'https://www.alicorp.com.pe/' WHEN 'Rimac Seguros' THEN 'https://www.rimac.com/' WHEN 'Entel Peru' THEN 'https://www.entel.pe/' WHEN 'Sodimac Peru' THEN 'https://www.sodimac.com.pe/' WHEN 'Inkafarma' THEN 'https://inkafarma.pe/' WHEN 'Yape' THEN 'https://www.yape.com.pe/' ELSE sitio_oficial END, pais=CASE WHEN razon_social='Microsoft' THEN 'Internacional' ELSE 'Peru' END WHERE razon_social IN ('Microsoft','BCP','Interbank','Alicorp','Rimac Seguros','Entel Peru','Sodimac Peru','Inkafarma','Yape');
+UPDATE empresas SET logo_url=CASE razon_social WHEN 'Microsoft Peru' THEN 'assets/logos/microsoft.png' WHEN 'BCP' THEN 'assets/logos/bcp.svg' WHEN 'Interbank' THEN 'assets/logos/interbank.svg' WHEN 'Alicorp' THEN 'assets/logos/alicorp.png' WHEN 'Rimac Seguros' THEN 'assets/logos/rimac.png' WHEN 'Entel Peru' THEN 'assets/logos/entel.webp' WHEN 'Sodimac Peru' THEN 'assets/logos/sodimac.png' WHEN 'Inkafarma' THEN 'assets/logos/inkafarma.png' WHEN 'Yape' THEN 'assets/logos/yape.png' ELSE logo_url END, sitio_oficial=CASE razon_social WHEN 'Microsoft Peru' THEN 'https://www.microsoft.com/es-pe/' WHEN 'BCP' THEN 'https://www.viabcp.com/' WHEN 'Interbank' THEN 'https://interbank.pe/' WHEN 'Alicorp' THEN 'https://www.alicorp.com.pe/' WHEN 'Rimac Seguros' THEN 'https://www.rimac.com/' WHEN 'Entel Peru' THEN 'https://www.entel.pe/' WHEN 'Sodimac Peru' THEN 'https://www.sodimac.com.pe/' WHEN 'Inkafarma' THEN 'https://inkafarma.pe/' WHEN 'Yape' THEN 'https://www.yape.com.pe/' ELSE sitio_oficial END, pais=CASE WHEN razon_social='Microsoft Peru' THEN 'Peru' ELSE pais END WHERE razon_social IN ('Microsoft Peru','BCP','Interbank','Alicorp','Rimac Seguros','Entel Peru','Sodimac Peru','Inkafarma','Yape');
 
 INSERT IGNORE INTO perfiles_postulantes(id_perfil, id_usuario, dni, telefono, habilidades, tipo_discapacidad, adaptacion_requerida, experiencia) VALUES
 (1, 3, '70112233', '999111222', 'Atencion al cliente, Excel, soporte remoto', 'Movilidad reducida', 'Acceso con rampa y horario flexible', 'Experiencia en soporte administrativo.'),
@@ -341,6 +341,7 @@ CREATE TABLE IF NOT EXISTS verificaciones_conadis (
     envios SMALLINT UNSIGNED NOT NULL DEFAULT 1,
     fecha_envio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_revision DATETIME NULL,
+    consentimiento_datos_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uq_verificacion_usuario(id_usuario),
     INDEX idx_verificacion_estado(estado,fecha_envio),
     UNIQUE KEY uq_verificacion_rui(rui),
@@ -373,7 +374,7 @@ CREATE TABLE IF NOT EXISTS codigos_otp (
     id_otp INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
     correo VARCHAR(150) NOT NULL,
-    codigo VARCHAR(6) NOT NULL,
+    codigo VARCHAR(255) NOT NULL,
     tipo ENUM('VERIFICACION_CORREO', 'RECUPERACION_CLAVE', 'ACCESO_2FA') NOT NULL DEFAULT 'VERIFICACION_CORREO',
     intentos TINYINT NOT NULL DEFAULT 0,
     estado ENUM('PENDIENTE', 'VERIFICADO', 'EXPIRADO', 'BLOQUEADO') NOT NULL DEFAULT 'PENDIENTE',
@@ -463,8 +464,9 @@ CREATE TRIGGER bi_conadis_obligatoria BEFORE INSERT ON verificaciones_conadis FO
 BEGIN
     IF NEW.estado<>'PENDIENTE' OR NEW.id_revisor IS NOT NULL
        OR NEW.rui IS NULL OR TRIM(NEW.rui)=''
-       OR NEW.carnet_archivo IS NULL OR TRIM(NEW.carnet_archivo)='' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='La solicitud inicial requiere RUI, fotografia y estado PENDIENTE.';
+       OR NEW.carnet_archivo IS NULL OR TRIM(NEW.carnet_archivo)=''
+       OR NEW.consentimiento_datos_at IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='La solicitud inicial requiere consentimiento, RUI, fotografia y estado PENDIENTE.';
     END IF;
 END$$
 CREATE TRIGGER bu_conadis_obligatoria BEFORE UPDATE ON verificaciones_conadis FOR EACH ROW
@@ -486,7 +488,7 @@ BEGIN
     IF NEW.estado='APROBADA' AND (NEW.metodo IS NULL OR NEW.metodo<>'MANUAL'
        OR NEW.dni IS NULL OR NEW.nombres IS NULL OR NEW.apellidos IS NULL
        OR NEW.fecha_caducidad IS NULL OR NEW.fecha_caducidad<CURDATE()
-       OR NEW.id_discapacidad IS NULL OR NEW.fecha_revision IS NULL) THEN
+       OR NEW.consentimiento_datos_at IS NULL OR NEW.fecha_revision IS NULL) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='La aprobacion manual requiere datos completos y vigentes.';
     END IF;
 END$$

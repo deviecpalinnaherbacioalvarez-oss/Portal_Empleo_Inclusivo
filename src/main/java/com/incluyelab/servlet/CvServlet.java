@@ -15,7 +15,10 @@ public class CvServlet extends HttpServlet {
         try{if(req.getParameter("postulacion")!=null)postulacion=Integer.parseInt(req.getParameter("postulacion"));else postulante=Integer.parseInt(req.getParameter("usuario"));}catch(Exception ex){res.sendError(404);return;}
         if(actor==null||(!"POSTULANTE".equals(actor.getRol())&&!"EMPRESA".equals(actor.getRol())&&!"RECURSOS_HUMANOS".equals(actor.getRol()))){res.sendError(403);return;}
         try(Connection cn=Conexion.getConnection()){
-            if("RECURSOS_HUMANOS".equals(actor.getRol())){try(PreparedStatement ps=cn.prepareStatement("SELECT p.id_usuario FROM postulaciones p WHERE p.id_postulacion=?")){ps.setInt(1,postulacion);try(ResultSet rs=ps.executeQuery()){if(!rs.next()){res.sendError(404);return;}postulante=rs.getInt(1);}}}
+            if("RECURSOS_HUMANOS".equals(actor.getRol())){
+                if(!new com.incluyelab.dao.RecursosHumanosDAO().puedeConsultarExpediente(actor.getIdUsuario(),postulacion)){res.sendError(403,"Debes registrar una evaluación antes de consultar el expediente privado.");return;}
+                try(PreparedStatement ps=cn.prepareStatement("SELECT p.id_usuario FROM postulaciones p WHERE p.id_postulacion=?")){ps.setInt(1,postulacion);try(ResultSet rs=ps.executeQuery()){if(!rs.next()){res.sendError(404);return;}postulante=rs.getInt(1);}}
+            }
             if("POSTULANTE".equals(actor.getRol())&&actor.getIdUsuario()!=postulante){res.sendError(403);return;}
             if("EMPRESA".equals(actor.getRol())){try(PreparedStatement ps=cn.prepareStatement("SELECT 1 FROM postulaciones p JOIN ofertas o ON o.id_oferta=p.id_oferta JOIN empresas e ON e.id_empresa=o.id_empresa WHERE p.id_usuario=? AND e.id_usuario=?")){ps.setInt(1,postulante);ps.setInt(2,actor.getIdUsuario());try(ResultSet rs=ps.executeQuery()){if(!rs.next()){res.sendError(403);return;}}}}
             String archivo=null,nombre=null;try(PreparedStatement ps=cn.prepareStatement("SELECT cv_archivo,cv_nombre FROM perfiles_postulantes WHERE id_usuario=?")){ps.setInt(1,postulante);try(ResultSet rs=ps.executeQuery()){if(rs.next()){archivo=rs.getString(1);nombre=rs.getString(2);}}}

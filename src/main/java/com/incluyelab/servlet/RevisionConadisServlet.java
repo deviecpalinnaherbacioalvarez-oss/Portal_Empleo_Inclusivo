@@ -34,7 +34,6 @@ public class RevisionConadisServlet extends HttpServlet {
 
             req.setAttribute("verificacion", verif);
             req.setAttribute("historial",dao.historial(verif.getIdVerificacion()));
-            req.setAttribute("discapacidades",dao.discapacidades());
             req.getRequestDispatcher("/WEB-INF/conadis-revision.jsp").forward(req, res);
         } catch (NumberFormatException ex) {
             res.sendError(404);
@@ -64,8 +63,7 @@ public class RevisionConadisServlet extends HttpServlet {
             String decision = req.getParameter("decision");
             String motivo = req.getParameter("motivo");
 
-            int discapacidad=0;if("aprobar".equals(decision)){try{discapacidad=Integer.parseInt(req.getParameter("idDiscapacidad"));}catch(Exception ex){throw new IllegalArgumentException("Selecciona una discapacidad del catálogo.");}}
-            dao.revisar(usuarioId,decision,motivo,actor.getIdUsuario(),req.getParameter("rui"),req.getParameter("dni"),req.getParameter("apellidos"),req.getParameter("nombres"),req.getParameter("fechaCaducidad"),discapacidad);
+            dao.revisar(usuarioId,decision,motivo,actor.getIdUsuario(),req.getParameter("rui"),req.getParameter("dni"),req.getParameter("apellidos"),req.getParameter("nombres"),req.getParameter("fechaCaducidad"));
 
             req.getSession().setAttribute("adminNotice", "Decisión guardada con éxito. El postulante verá el resultado al ingresar a la plataforma.");
             res.sendRedirect(req.getContextPath() + "/recursos-humanos#conadis");

@@ -1,34 +1,34 @@
 # Accesibilidad de IncluyeLab
 
-El catálogo de alcance contiene únicamente estas 13 necesidades. En esta entrega se implementa la ayuda visual de la fila 1; las funciones de las filas 2 a 13 quedan planificadas. La página pública `/accesibilidad` muestra el catálogo y su estado.
+El catálogo contiene 13 grupos de necesidades y los vincula con ayudas comprobables del portal: preferencias visuales, navegación por teclado, formularios por pasos, lectura por voz y filtros de apoyos declarados por las empresas.
 
 | N.º | Discapacidad o necesidad | Funcionalidades | ¿Cómo implementarlo? | Estado |
 | --- | --- | --- | --- | --- |
 | 1 | Visual (ceguera o baja visión) | Audio descriptivo, navegación por flechas, alto contraste y aumento de texto. | JavaScript con `SpeechSynthesis`, CSS para contraste y HTML compatible con lectores de pantalla. | Ayuda visual disponible |
-| 2 | Física o motora | Navegación sin mouse, filtros de trabajo remoto y accesibilidad física. | Eventos de teclado en JavaScript y filtros relacionados con los datos de las empresas. | Planificado |
-| 3 | Auditiva (sordera o hipoacusia) | Subtítulos, entrevistas por chat y videos en Lengua de Señas Peruana (LSP). | Chat con backend, videos subtitulados y contenido grabado con intérpretes de LSP. | Planificado |
-| 4 | Intelectual | Formularios sencillos, instrucciones habladas, imágenes y postulación paso a paso. | HTML y JavaScript con formularios divididos en etapas, pictogramas y lectura por voz. | Planificado |
-| 5 | Dificultades del habla (afasia, disartria, etc.) | Entrevistas escritas, respuestas predeterminadas y comunicación mediante texto a voz. | Chat y botones de comunicación aumentativa y alternativa (CAA), usando `SpeechSynthesis`. | Planificado |
-| 6 | Autismo con necesidades sensoriales | Filtros de ruido, iluminación, interacción social y organización del ambiente laboral. | Campos adicionales en la base de datos y filtros dinámicos en JavaScript. | Planificado |
-| 7 | Dislexia y dificultades de lectura | Lectura por audio, texto simplificado, ajuste de fuente y espaciado. | CSS personalizable, JavaScript y explicaciones redactadas en lenguaje sencillo. | Planificado |
-| 8 | Movilidad manual muy limitada | Comandos de voz y navegación mediante una sola tecla o pulsador. | API `SpeechRecognition` donde sea compatible, además de navegación accesible para dispositivos de asistencia. | Planificado |
-| 9 | Sordoceguera | Navegación textual accesible, soporte para lectores de pantalla y líneas braille. | HTML semántico, etiquetas accesibles, navegación completa por teclado y pruebas con tecnologías de asistencia. | Planificado |
-| 10 | Psicosocial | Filtros de horarios flexibles, teletrabajo y posibilidad de solicitar ajustes durante entrevistas. | Nuevos campos del perfil laboral y filtros de condiciones de trabajo en la base de datos. | Planificado |
-| 11 | TDAH con necesidades de apoyo | Modo sin distracciones, tareas divididas en pasos y recordatorios de postulación. | CSS para interfaz simplificada, JavaScript para seguimiento de pasos y notificaciones opcionales. | Planificado |
-| 12 | Discapacidades asociadas a condiciones crónicas o fatiga | Filtrar trabajos flexibles, descansos disponibles y opciones remotas. | Registrar características de jornada y adaptaciones ofrecidas por cada empresa; conectarlas con el buscador. | Planificado |
-| 13 | Fotosensibilidad o sensibilidad a estímulos visuales | Desactivar animaciones, evitar destellos y ofrecer un modo visual tranquilo. | CSS con `prefers-reduced-motion` y controles de accesibilidad personalizables. | Planificado |
+| 2 | Física o motora | Navegación sin mouse, filtros de trabajo remoto y accesibilidad física. | Foco visible, controles táctiles amplios y filtros conectados a ofertas. | Disponible |
+| 3 | Auditiva (sordera o hipoacusia) | Ofertas con subtítulos, comunicación escrita o intérprete declarado. | Filtros de apoyos publicados por cada empresa. | Disponible |
+| 4 | Intelectual | Formularios sencillos y registro paso a paso. | Etapas visibles, validaciones claras y lectura por voz. | Disponible |
+| 5 | Dificultades del habla | Canal de soporte escrito y lectura en voz alta. | Formularios de texto y `SpeechSynthesis`. | Disponible |
+| 6 | Autismo con necesidades sensoriales | Bajo estímulo, indicaciones escritas y metodologías visuales. | Filtros JDBC sobre apoyos de las ofertas. | Disponible |
+| 7 | Dislexia y dificultades de lectura | Lectura por audio, fuente legible y texto ampliado. | CSS personalizable y controles persistentes. | Disponible |
+| 8 | Movilidad manual muy limitada | Navegación por teclado y objetivos táctiles amplios. | Foco visible, enlace de salto y controles de 44 px. | Disponible |
+| 9 | Sordoceguera | Navegación textual y compatibilidad semántica. | Etiquetas accesibles y navegación completa por teclado. | Disponible |
+| 10 | Psicosocial | Horario flexible, teletrabajo y apoyos de entrevista. | Filtros sobre datos reales de las vacantes. | Disponible |
+| 11 | TDAH con necesidades de apoyo | Interfaz estable, tareas por pasos y notificaciones gestionables. | Diseño sin desplazamientos y notificaciones marcables. | Disponible |
+| 12 | Condiciones crónicas o fatiga | Filtrar flexibilidad, pausas y trabajo remoto. | Apoyos declarados por la empresa conectados al buscador. | Disponible |
+| 13 | Fotosensibilidad | Reducir animaciones y evitar destellos. | CSS con `prefers-reduced-motion`. | Disponible |
 
 ## Uso de la ayuda visual
 
 En la barra superior, utiliza los controles de lectura por voz, navegación por flechas, alto contraste y aumento de texto. La voz es síntesis del texto de la página; depende de las voces y del soporte del navegador. No se reproduce automáticamente ni sustituye un lector de pantalla.
 
-La selección de múltiples necesidades y la personalización de filtros de empleo ampliados quedan previstas para una siguiente etapa. Los filtros de apoyos ya existentes se conservan: describen adaptaciones declaradas por empresas, no diagnósticos ni garantías de compatibilidad individual.
+Los filtros permiten combinar múltiples apoyos. Describen adaptaciones declaradas por empresas, no diagnósticos ni garantías de compatibilidad individual.
 
 No se borra ni modifica información de usuarios para adaptar este catálogo. La columna histórica `perfiles_postulantes.tipo_discapacidad` no se usa para excluir personas ni se elimina. La verificación CONADIS conserva su flujo de identificación y no solicita un diagnóstico médico.
 
 ## Comprobación manual
 
-1. Abre `/accesibilidad`: deben aparecer 13 filas y solo la ayuda visual como disponible.
+1. Abre `/accesibilidad`: deben aparecer 13 filas con una ayuda comprobable y estado disponible.
 2. Activa alto contraste y texto grande; navega a otra página y comprueba las preferencias.
 3. Inicia y detén la lectura por voz; comprueba también el detalle de una oferta. Si no hay voz compatible, debe mostrarse una indicación.
 4. Activa navegación por flechas y recorre los controles. Comprueba que puedes escribir y usar las flechas normalmente dentro de campos de texto y selectores; `Tab` sigue disponible.

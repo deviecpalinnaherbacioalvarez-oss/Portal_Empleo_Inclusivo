@@ -30,10 +30,8 @@ y al ODS 10. Mantiene JSP, Servlets, JavaBeans, DAO y MySQL.
 ACTORES PRINCIPALES Y FUNCIONES ACTUALES
 Administrador:
 - Iniciar y cerrar sesion.
-- Gestionar usuarios: crear, consultar/buscar, editar datos/rol/estado y eliminar.
-- Gestionar empresas: crear con cuenta vinculada, consultar/buscar, editar y eliminar.
-- Gestionar ofertas: crear, consultar/buscar, editar y cerrar, eliminar.
-- Gestionar postulaciones: crear, consultar/buscar, cambiar estado y eliminar.
+- Gestionar usuarios: crear cuentas internas, consultar/buscar, editar, activar o dar de baja.
+- Consultar empresas, ofertas, postulaciones y auditorias sin modificar registros ajenos.
 
 Postulante:
 - Registrar una cuenta de postulante.
@@ -42,13 +40,16 @@ Postulante:
 - Consultar el detalle de una oferta.
 - Postular a una oferta activa.
 - Consultar sus postulaciones y su estado.
+- Gestionar su perfil, CV, experiencia, educacion y certificaciones.
+- Retirar sus propias postulaciones.
 - Guardar o quitar ofertas favoritas en su navegador.
 
 Empresa:
 - Registrar una cuenta de empresa.
 - Iniciar y cerrar sesion.
 - Publicar una oferta con descripcion, modalidad, ubicacion, salario y adaptaciones.
-- Consultar y buscar sus ofertas publicadas.
+- Consultar, buscar, editar y cerrar sus ofertas conservando el historial.
+- Revisar los candidatos de sus propias ofertas y actualizar su estado.
 
 Funciones publicas (no requieren iniciar sesion):
 - Buscar ofertas y consultar sus detalles.
@@ -62,7 +63,7 @@ REGLAS QUE DEBE RESPETAR EL DIAGRAMA Y SU ESPECIFICACION
 - No hay registro publico de administradores.
 - Una persona no debe postular dos veces a la misma oferta.
 - La oferta debe estar activa al registrar una postulacion.
-- Solo el administrador cambia estados de postulaciones actualmente.
+- La empresa cambia el estado de postulaciones recibidas en sus propias ofertas.
 - Editar una postulacion conserva su postulante y oferta originales.
 - Eliminar exige confirmacion. Las dependencias bloquean borrados.
 - El administrador no puede eliminar ni desactivar su propia cuenta.
@@ -70,9 +71,8 @@ REGLAS QUE DEBE RESPETAR EL DIAGRAMA Y SU ESPECIFICACION
 - Eliminar empresa no elimina automaticamente la cuenta vinculada.
 - Favoritos y preferencias de accesibilidad se guardan en localStorage,
   no en MySQL ni sincronizados entre dispositivos.
-- La existencia de perfiles_postulantes NO significa que haya una pantalla
-  para editar CV o perfil: no presentar esa funcion como implementada.
-- El panel Empresa no incluye gestion de candidatos ni cambio de estados.
+- El postulante puede editar su perfil y CV desde su panel protegido.
+- El panel Empresa gestiona solamente candidatos de sus propias convocatorias.
 - No hay ventas, pagos ni citas en este proyecto.
 
 REFERENCIAS DEL CODIGO PARA EL INFORME

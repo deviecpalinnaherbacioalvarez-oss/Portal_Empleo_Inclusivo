@@ -55,16 +55,22 @@ public class AdminServlet extends HttpServlet {
         try {
             entidad = entidad(req);
             id = Integer.parseInt(valor(req,"id"));
-            if (id < 0 || !"guardar".equals(accion))
+            if (id < 0 || (!"guardar".equals(accion) && !"dar_baja".equals(accion)))
                 throw new IllegalArgumentException();
         } catch (SecurityException ex) { res.sendError(403,ex.getMessage()); return; }
           catch (IllegalArgumentException ex) { res.sendError(400,"Solicitud no valida."); return; }
+        Usuario actor = (Usuario)req.getSession().getAttribute("usuario");
+        if ("dar_baja".equals(accion)) {
+            try { dao.darBaja(id,actor.getIdUsuario());req.getSession().setAttribute("adminNotice","Cuenta desactivada. El historial se conserva.");res.sendRedirect(req.getContextPath()+"/admin#usuarios"); }
+            catch (IllegalArgumentException ex) { res.sendError(400,ex.getMessage()); }
+            catch (SQLException ex) { log("No se pudo desactivar la cuenta",ex);res.sendError(503); }
+            return;
+        }
         Map<String,String> valores = new HashMap<>();
         for (String campo : Arrays.asList("nombre","correo","rol","estado","razonSocial","ruc","sector","selloInclusivo","idEmpresa","titulo","modalidad","ubicacion","adaptaciones","descripcion","salario","idUsuario","idOferta"))
             valores.put(campo,valor(req,campo));
         valores.put("contrasena", req.getParameter("contrasena") == null ? "" : req.getParameter("contrasena"));
         valores.put("apoyos", com.incluyelab.model.ApoyosOferta.validar(req.getParameterValues("apoyos")));
-        Usuario actor = (Usuario)req.getSession().getAttribute("usuario");
         try {
             cargar(req);
             if (id > 0 && "usuarios".equals(entidad) && "EMPRESA".equals(registro(req,"usuarios",id).get("rol"))) {

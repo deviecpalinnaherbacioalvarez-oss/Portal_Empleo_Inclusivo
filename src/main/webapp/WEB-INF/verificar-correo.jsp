@@ -9,7 +9,6 @@
     }
     String correoEnmascarado = (String) request.getAttribute("correoEnmascarado");
     if (correoEnmascarado == null) correoEnmascarado = usuario.getCorreo();
-    String codigoDemo = (String) request.getAttribute("codigoDemo");
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -71,28 +70,7 @@
                 </button>
             </form>
 
-            <!-- Modo Demostración Académica para el Profesor -->
-            <% if (codigoDemo != null) { %>
-                <div class="otp-demo-card text-start">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <strong class="font-sm text-teal d-flex align-items-center gap-1">
-                            <i data-lucide="sparkles" style="width:16px;height:16px;"></i> Modo Demostración / Entorno Académico
-                        </strong>
-                        <span class="badge badge-success font-sm">Válido 15 min</span>
-                    </div>
-                    <p class="font-sm mb-2" style="line-height:1.4;">
-                        Para facilitar la sustentación y pruebas locales sin depender de un servicio SMTP externo, el código OTP generado en MySQL es:
-                    </p>
-                    <div class="d-flex align-items-center justify-content-between gap-2">
-                        <span style="font-family:monospace;font-size:1.6rem;font-weight:800;letter-spacing:4px;color:var(--teal);background:var(--surface);padding:4px 12px;border-radius:6px;border:1px solid var(--line);">
-                            <%=codigoDemo%>
-                        </span>
-                        <button type="button" class="btn btn-sm" onclick="autocompletarCodigo('<%=codigoDemo%>')">
-                            <i data-lucide="copy-check" aria-hidden="true"></i> Autocompletar
-                        </button>
-                    </div>
-                </div>
-            <% } %>
+            <% if (request.getAttribute("aviso") != null) { %><div class="alert alert-success" role="status"><%=h(request.getAttribute("aviso"))%></div><% } %>
 
             <!-- Reenvío de Código y Cierre de Sesión -->
             <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
@@ -169,18 +147,6 @@
         }
     });
 
-    function autocompletarCodigo(code) {
-        if (!code || code.length !== 6) return;
-        var inputs = document.querySelectorAll('.otp-digit-input');
-        code.split('').forEach(function (digit, idx) {
-            if (inputs[idx]) {
-                inputs[idx].value = digit;
-                inputs[idx].classList.add('has-value');
-            }
-        });
-        document.getElementById('codigo-completo').value = code;
-        document.getElementById('otp-form').submit();
-    }
 </script>
 
 <%@include file="jspf/footer.jspf"%>

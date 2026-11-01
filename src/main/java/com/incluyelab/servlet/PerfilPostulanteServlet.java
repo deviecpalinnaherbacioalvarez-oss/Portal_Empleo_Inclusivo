@@ -32,6 +32,9 @@ public class PerfilPostulanteServlet extends HttpServlet {
                 case"experiencia":dao.agregarExperiencia(u.getIdUsuario(),v(req,"cargo"),v(req,"organizacion"),v(req,"inicio"),v(req,"fin"),v(req,"descripcion"));break;
                 case"educacion":dao.agregarEducacion(u.getIdUsuario(),v(req,"institucion"),v(req,"carrera"),v(req,"inicio"),v(req,"fin"),v(req,"descripcion"));break;
                 case"certificacion":dao.agregarCertificacion(u.getIdUsuario(),v(req,"nombreCert"),v(req,"emisor"),v(req,"fecha"),v(req,"url"));break;
+                case"editarExperiencia":dao.actualizarExperiencia(u.getIdUsuario(),id(req),v(req,"cargo"),v(req,"organizacion"),v(req,"inicio"),v(req,"fin"),v(req,"descripcion"));break;
+                case"editarEducacion":dao.actualizarEducacion(u.getIdUsuario(),id(req),v(req,"institucion"),v(req,"carrera"),v(req,"inicio"),v(req,"fin"),v(req,"descripcion"));break;
+                case"editarCertificacion":dao.actualizarCertificacion(u.getIdUsuario(),id(req),v(req,"nombreCert"),v(req,"emisor"),v(req,"fecha"),v(req,"url"));break;
                 case"eliminar":dao.eliminar(u.getIdUsuario(),v(req,"tipo"),Integer.parseInt(v(req,"id")));break;
                 case"cv":guardarCv(req,u);break;
                 case"foto":guardarFoto(req,u);break;
@@ -71,4 +74,5 @@ public class PerfilPostulanteServlet extends HttpServlet {
     }
     private Usuario usuario(HttpServletRequest req){Object x=req.getSession().getAttribute("usuario");return x instanceof Usuario&&"POSTULANTE".equals(((Usuario)x).getRol())?(Usuario)x:null;}
     private String v(HttpServletRequest req,String k){String x=req.getParameter(k);return x==null?"":x.trim();}
+    private int id(HttpServletRequest req){try{int id=Integer.parseInt(v(req,"id"));if(id>0)return id;}catch(NumberFormatException ex){}throw new IllegalArgumentException("Selecciona un elemento válido.");}
 }
