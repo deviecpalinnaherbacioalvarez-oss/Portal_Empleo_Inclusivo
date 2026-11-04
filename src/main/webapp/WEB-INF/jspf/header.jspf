@@ -19,9 +19,10 @@
     <summary class="container"><i data-lucide="volume-2" aria-hidden="true"></i> Ayuda visual: escuchar y navegar</summary>
     <div class="container visual-tools-panel">
         <div class="visual-tools-actions" role="group" aria-label="Lectura por voz y navegación">
-            <button class="btn" type="button" data-read-page<%=loginKeyboardPage ? " data-keyboard-box data-speech-label=\"Escuchar página\"" : ""%>>Escuchar página</button>
+            <button class="btn" type="button" data-read-page>Escuchar página</button>
             <% if (loginKeyboardPage) { %>
-            <button class="btn" type="button" data-read-mute aria-pressed="false" data-keyboard-box data-speech-label="Silenciar lectura">Silenciar lectura</button>
+            <button class="btn" type="button" data-read-mute aria-pressed="false">Silenciar lectura</button>
+            <button class="btn" type="button" data-arrow-navigation aria-pressed="false" aria-describedby="visual-help">Navegar con flechas</button>
             <% } else { %>
             <button class="btn" type="button" data-read-pause disabled>Pausar lectura</button>
             <button class="btn" type="button" data-read-stop disabled>Detener lectura</button>
@@ -29,9 +30,10 @@
             <% } %>
         </div>
         <% if (loginKeyboardPage) { %>
-        <div class="keyboard-symbols" id="visual-help" aria-label="Controles de navegación con teclado">
-            <span><kbd>↑</kbd> Subir</span><span><kbd>↓</kbd> Bajar</span><span><kbd>←</kbd> Lado izquierdo</span><span><kbd>→</kbd> Lado derecho</span><span><kbd>Enter</kbd> Entrar y salir del recuadro</span>
+        <div class="keyboard-symbols" aria-label="Controles de navegación con teclado">
+            <span><kbd>Tab</kbd> Avanzar</span><span><kbd>Mayús + Tab</kbd> Retroceder</span><span><kbd>Enter</kbd> Activar o ingresar</span><span><kbd>Espacio</kbd> Activar botones</span>
         </div>
+            <p class="keyboard-help-text" id="visual-help">Las flechas son opcionales y no reemplazan el teclado habitual. Dentro de campos y listas, usa las teclas nativas del control.</p>
         <% } else { %>
         <label class="check"><input type="checkbox" data-read-focus> Leer el nombre del control al navegar</label>
         <p id="visual-help">Activa las flechas para avanzar (↓ / →) o retroceder (↑ / ←) entre enlaces y botones. Usa Tab para salir de un campo de texto o selector y Enter para activar un control. Escape detiene la voz. La lectura comienza solo al solicitarla.</p>

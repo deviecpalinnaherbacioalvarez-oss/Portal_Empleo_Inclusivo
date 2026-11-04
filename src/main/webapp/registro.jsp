@@ -35,7 +35,7 @@
             <input type="hidden" name="oferta" value="<%=h(request.getParameter("oferta"))%>">
 
             <!-- ===================== PASO 1: CUENTA Y ACCESO ===================== -->
-            <div id="step-1" class="step-panel">
+            <div id="step-1" class="step-panel" aria-labelledby="indicator-step-1">
                 <div class="field">
                     <label for="rol">Tipo de cuenta</label>
                     <select class="form-select" id="rol" name="rol" required onchange="handleRolChange(this.value)">
@@ -93,7 +93,7 @@
             </div>
 
             <!-- ===================== PASO 2: VERIFICACIÓN DIGITAL CONADIS ===================== -->
-            <div id="step-2" class="step-panel" style="display:none;">
+            <div id="step-2" class="step-panel" aria-labelledby="indicator-step-2" hidden>
                 <div class="field">
                     <label for="rui">Código RUI o número de carnet CONADIS *</label>
                     <input class="form-control" id="rui" name="rui" maxlength="20" autocomplete="off" value="<%=h(request.getParameter("rui"))%>" placeholder="Ej. RD406923">
@@ -123,6 +123,7 @@
                     </button>
                 </div>
             </div>
+            <p class="visually-hidden" id="register-step-status" role="status" aria-live="polite"></p>
         </form>
 
         <p class="auth-foot">¿Ya tienes una cuenta? <a href="<%=request.getContextPath()%>/login">Ingresa aquí</a></p>
@@ -167,8 +168,8 @@
         var confirmar = document.getElementById('confirmarContrasena');
         if (!confirmar.checkValidity()) { confirmar.reportValidity(); return; }
 
-        document.getElementById('step-1').style.display = 'none';
-        document.getElementById('step-2').style.display = 'block';
+        document.getElementById('step-1').hidden = true;
+        document.getElementById('step-2').hidden = false;
 
         // Requerir campos en paso 2
         ['rui', 'carnetFoto'].forEach(function(id) {
@@ -178,13 +179,17 @@
 
         document.getElementById('indicator-step-1').classList.add('completed');
         document.getElementById('indicator-step-1').classList.remove('active');
+        document.getElementById('indicator-step-1').removeAttribute('aria-current');
         document.getElementById('indicator-step-2').classList.add('active');
+        document.getElementById('indicator-step-2').setAttribute('aria-current', 'step');
+        document.getElementById('register-step-status').textContent = 'Paso 2 de 2: verificación del carnet CONADIS.';
         window.lucide?.createIcons();
+        window.requestAnimationFrame(function() { document.getElementById('rui').focus(); });
     }
 
     function goToStep1() {
-        document.getElementById('step-2').style.display = 'none';
-        document.getElementById('step-1').style.display = 'grid';
+        document.getElementById('step-2').hidden = true;
+        document.getElementById('step-1').hidden = false;
 
         // Quitar obligatoriedad temporal al regresar
         ['rui', 'carnetFoto'].forEach(function(id) {
@@ -193,9 +198,13 @@
         });
 
         document.getElementById('indicator-step-2').classList.remove('active');
+        document.getElementById('indicator-step-2').removeAttribute('aria-current');
         document.getElementById('indicator-step-1').classList.remove('completed');
         document.getElementById('indicator-step-1').classList.add('active');
+        document.getElementById('indicator-step-1').setAttribute('aria-current', 'step');
+        document.getElementById('register-step-status').textContent = 'Paso 1 de 2: datos de acceso.';
         window.lucide?.createIcons();
+        window.requestAnimationFrame(function() { document.getElementById('btnNext').focus(); });
     }
 
     function previewFile(input) {
@@ -209,6 +218,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('indicator-step-1').setAttribute('aria-current', 'step');
         handleRolChange(document.getElementById('rol').value);
         ['contrasena', 'confirmarContrasena'].forEach(function(id) {
             document.getElementById(id).addEventListener('input', actualizarConfirmacion);

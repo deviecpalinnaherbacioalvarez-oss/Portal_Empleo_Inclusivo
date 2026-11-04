@@ -684,9 +684,6 @@ h1,h2,h3 { font-weight:700; }
 .keyboard-symbols span { display:flex; align-items:center; gap:8px; font-weight:700; }
 .keyboard-symbols kbd { display:inline-flex; min-width:42px; min-height:38px; padding:6px 10px; align-items:center; justify-content:center; border:2px solid #075b70; border-radius:7px; background:#fff; color:#073b49; font:700 1rem/1 system-ui,sans-serif; box-shadow:0 3px 0 #075b70; }
 .keyboard-help-text { color:#173f4a; }
-.login-page [data-keyboard-box]:focus { outline:4px solid #b46a00; outline-offset:5px; border-radius:6px; }
-.login-page .keyboard-field-box { padding:8px; margin-inline:-8px; }
-.login-page .keyboard-field-box:focus { background:#fff7d6; }
 .high-contrast .login-keyboard-help, .high-contrast .keyboard-symbols { background:#000; color:#fff; border-color:#00ffff; }
 .high-contrast .keyboard-symbols kbd { background:#000; color:#fff; border-color:#ffe46a; box-shadow:0 3px 0 #ffe46a; }
 html.large-text { font-size:125%; }

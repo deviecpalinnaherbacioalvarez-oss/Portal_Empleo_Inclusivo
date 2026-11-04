@@ -8,4 +8,4 @@
 <script defer src="<%=request.getContextPath()%>/assets/vendor/bootstrap.bundle.min.js"></script>
 <script defer src="<%=request.getContextPath()%>/assets/vendor/lucide.min.js"></script>
 <script defer src="<%=request.getContextPath()%>/assets/js/app.js?v=20261028-registro-confirmacion"></script>
-<script defer src="<%=request.getContextPath()%>/assets/js/visual.js?v=20261028-teclado-login-limpio"></script>
+<script defer src="<%=request.getContextPath()%>/assets/js/visual.js?v=20261104-teclado-estandar"></script>

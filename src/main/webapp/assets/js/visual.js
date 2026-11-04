@@ -14,15 +14,13 @@
     };
     const main = document.querySelector('#contenido');
     if (main && !main.hasAttribute('tabindex')) main.tabIndex = -1;
-    const loginKeyboardMode = document.body.classList.contains('login-page');
-
     let settings = {};
     try {
         const saved = JSON.parse(localStorage.getItem('incluyelab.visual'));
         if (saved && typeof saved === 'object' && !Array.isArray(saved)) settings = saved;
     } catch (_) { /* La ayuda también funciona sin almacenamiento. */ }
-    let arrows = loginKeyboardMode || settings.arrows === true;
-    let readFocus = loginKeyboardMode || settings.readFocus === true;
+    let arrows = settings.arrows === true;
+    let readFocus = settings.readFocus === true;
     let muted = false;
     const save = () => {
         try { localStorage.setItem('incluyelab.visual', JSON.stringify({ arrows, readFocus })); }
@@ -170,30 +168,11 @@
     const nativeArrows = 'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="slider"], [role="spinbutton"], [role="tablist"], [role="menu"], [role="listbox"], [role="tree"], [role="grid"], [role="region"][tabindex]';
     document.addEventListener('keydown', event => {
         if (event.key === 'Escape') { if (reading) stop('Lectura detenida.'); return; }
-        if (loginKeyboardMode && event.key === 'Enter' && !event.altKey && !event.ctrlKey && !event.metaKey) {
-            const fieldBox = event.target.closest('.keyboard-field-box');
-            if (fieldBox && event.target === fieldBox) {
-                const editor = fieldBox.querySelector('[data-box-editor]');
-                if (editor) {
-                    event.preventDefault();
-                    editor.focus();
-                    status('Dentro del recuadro. Escribe y pulsa Enter para salir.');
-                    return;
-                }
-            }
-            if (event.target.matches('[data-box-editor]')) {
-                event.preventDefault();
-                fieldBox?.focus();
-                status('Fuera del recuadro. Continúa con las flechas.');
-                return;
-            }
-        }
         if (!arrows || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey
             || !['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'].includes(event.key)
             || event.target.closest(nativeArrows)) return;
         const scope = modal() || document;
-        const selector = loginKeyboardMode ? '[data-keyboard-box]' : focusables;
-        const controls = all(selector, scope).filter(node => visible(node) && !node.disabled && node.tabIndex >= 0);
+        const controls = all(focusables, scope).filter(node => visible(node) && !node.disabled && node.tabIndex >= 0);
         if (!controls.length) return;
         const current = controls.indexOf(document.activeElement);
         const forward = event.key === 'ArrowDown' || event.key === 'ArrowRight';
