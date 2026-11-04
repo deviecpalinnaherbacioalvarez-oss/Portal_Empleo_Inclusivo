@@ -897,3 +897,104 @@ main.container.auth-layout.register-layout { max-width: 1040px; grid-template-co
 .conadis-preview-link { display: grid; gap: 10px; color: inherit; text-decoration: none; }
 .conadis-preview-link span { display: inline-flex; align-items: center; gap: 8px; color: #4dd8de; font-weight: 700; }
 .conadis-preview-link svg { width: 18px; height: 18px; }
+
+/* Centro operativo de Soporte Tecnico. */
+.support-page { background:var(--bg); }
+.support-dashboard { max-width:1440px; padding-bottom:64px; }
+.support-heading { align-items:flex-end; padding-bottom:22px; border-bottom:1px solid var(--line); }
+.support-heading h1 { margin-bottom:7px; }
+.support-heading p:last-child { max-width:780px; margin:0; }
+.support-restricted { display:inline-flex; align-items:center; gap:8px; flex:0 0 auto; padding:9px 12px; border:1px solid var(--line); color:var(--muted); font-size:.78rem; font-weight:700; text-transform:uppercase; }
+.support-restricted svg { width:18px; height:18px; color:var(--teal); }
+.support-metrics { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin:22px 0 14px; }
+.support-metrics>div { position:relative; min-height:96px; padding:16px 48px 14px 16px; border:1px solid var(--line); border-top:3px solid var(--teal); background:var(--surface); }
+.support-metrics span { display:block; max-width:18ch; color:var(--muted); font-size:.76rem; font-weight:700; }
+.support-metrics strong { display:block; margin-top:8px; font-size:1.8rem; line-height:1; }
+.support-metrics svg { position:absolute; top:16px; right:15px; width:21px; height:21px; color:var(--teal); }
+.support-quick-nav { display:flex; align-items:center; gap:0; overflow-x:auto; margin-bottom:28px; border:1px solid var(--line); background:var(--surface); }
+.support-quick-nav a { min-height:48px; padding:12px 16px; display:inline-flex; align-items:center; gap:8px; border-right:1px solid var(--line); color:var(--ink); font-size:.82rem; font-weight:700; text-decoration:none; white-space:nowrap; }
+.support-quick-nav a:hover,.support-quick-nav a:focus-visible { background:var(--teal-soft); color:var(--teal); }
+.support-quick-nav svg { width:17px; height:17px; }
+.support-section { margin:0 0 26px; padding:24px; border:1px solid var(--line); background:var(--surface); }
+.support-section h2 { margin-bottom:5px; }
+.support-account-lookup .section-toolbar { margin-bottom:18px; }
+.support-search-form { display:grid; grid-template-columns:minmax(280px,1fr) auto auto; gap:12px; align-items:end; }
+.support-search-form .field { margin:0; }
+.support-search-form .btn { min-height:48px; }
+.support-table-wrap { margin-top:20px; border:1px solid var(--line); }
+.support-table { min-width:920px; margin:0; }
+.support-table thead th { padding:13px 15px; background:var(--teal-soft); font-size:.72rem; text-transform:uppercase; }
+.support-table td { padding:15px; vertical-align:middle; }
+.support-table td:last-child small { display:block; max-width:300px; margin-top:4px; color:var(--muted); }
+.support-access-state { display:inline-flex; align-items:center; gap:6px; padding:5px 8px; border:1px solid currentColor; font-size:.7rem; font-weight:700; text-transform:uppercase; }
+.support-access-state.is-ready { color:#12613e; background:#e9f7ef; }
+.support-access-state.is-warning { color:#8a4d00; background:#fff8e8; }
+.support-access-state.is-blocked { color:#941237; background:#fff0f3; }
+.support-empty { min-height:130px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; color:var(--muted); text-align:center; }
+.support-empty svg { width:30px; height:30px; color:var(--teal); }
+.support-empty strong { color:var(--ink); }
+.support-create-panel { margin-bottom:26px; border:1px solid var(--line); background:var(--surface); }
+.support-create-panel>summary { min-height:70px; padding:16px 20px; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12px; cursor:pointer; list-style:none; }
+.support-create-panel>summary::-webkit-details-marker { display:none; }
+.support-create-panel>summary>span { display:flex; align-items:center; gap:10px; }
+.support-create-panel>summary svg { width:21px; height:21px; color:var(--teal); }
+.support-create-panel>summary small { color:var(--muted); }
+.support-create-panel>summary::after { content:'+'; width:32px; height:32px; display:grid; place-items:center; border:1px solid var(--line); color:var(--teal); font-size:1.25rem; }
+.support-create-panel[open]>summary::after { content:'−'; }
+.support-create-content { padding:22px; border-top:1px solid var(--line); }
+.support-full-field { grid-column:1/-1; }
+.support-section-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:18px; }
+.support-section-heading p { max-width:570px; margin:0; }
+.support-ticket-card { margin-bottom:18px; border:1px solid var(--line); background:var(--surface); }
+.support-ticket-header { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; padding:19px 21px; border-bottom:1px solid var(--line); background:var(--teal-soft); }
+.support-ticket-header h3 { margin:2px 0 7px; font-size:1.12rem; }
+.support-ticket-header p:last-child { display:flex; flex-wrap:wrap; align-items:center; gap:9px 14px; margin:0; color:var(--muted); font-size:.78rem; }
+.support-ticket-flags { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.support-priority { padding:5px 8px; border:1px solid currentColor; font-size:.68rem; font-weight:800; }
+.priority-baja { color:#12613e; background:#e9f7ef; }
+.priority-media { color:#245f8f; background:#edf6fc; }
+.priority-alta { color:#8a4d00; background:#fff8e8; }
+.priority-urgente { color:#941237; background:#fff0f3; }
+.support-ticket-card>form { padding:21px; }
+.support-ticket-card>.profile-section { margin:0 21px 21px; padding:19px; border:1px solid var(--line); border-left:4px solid var(--teal); background:var(--bg); }
+.support-ticket-card>.profile-section h4 { margin-bottom:5px; }
+.support-ticket-card>.alert,.support-ticket-card>.candidate-actions { margin-inline:21px; }
+.support-ticket-card>.candidate-actions { margin-bottom:18px; }
+.support-ticket-card>form:last-child { border-top:1px solid var(--line); }
+.support-tickets>.muted { padding:24px; border:1px dashed var(--line); text-align:center; }
+.support-dashboard #auditoria,.support-dashboard #notificaciones { margin:0 0 26px; padding:24px; border:1px solid var(--line); background:var(--surface); }
+.support-dashboard #auditoria>.table-wrap { margin-top:16px; border:1px solid var(--line); }
+.support-dashboard #auditoria .table { min-width:980px; margin:0; }
+.support-dashboard #auditoria th { background:var(--teal-soft); font-size:.72rem; text-transform:uppercase; }
+.support-dashboard #notificaciones .section-toolbar { margin-bottom:16px; }
+.support-dashboard #notificaciones .application-list { border:1px solid var(--line); }
+.support-dashboard #notificaciones .application-row { padding:16px 18px; border-bottom:1px solid var(--line); }
+.support-dashboard #notificaciones .application-row:last-child { border-bottom:0; }
+
+.high-contrast .support-metrics>div,.high-contrast .support-quick-nav,.high-contrast .support-section,.high-contrast .support-create-panel,.high-contrast .support-ticket-card,.high-contrast .support-dashboard #auditoria,.high-contrast .support-dashboard #notificaciones { background:#080808; }
+.high-contrast .support-table thead th,.high-contrast .support-ticket-header,.high-contrast .support-dashboard #auditoria th { background:#171717; }
+.high-contrast .support-quick-nav a:hover,.high-contrast .support-quick-nav a:focus-visible { background:#222; color:#ffe46a; }
+.high-contrast .support-access-state,.high-contrast .support-priority { color:#ffe46a; background:#090909; }
+
+@media(max-width:1050px) {
+    .support-metrics { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+@media(max-width:760px) {
+    .support-heading,.support-section-heading { align-items:flex-start; flex-direction:column; }
+    .support-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .support-search-form { grid-template-columns:1fr; }
+    .support-search-form .btn { width:100%; }
+    .support-create-panel>summary { grid-template-columns:1fr auto; }
+    .support-create-panel>summary>span { grid-column:1; grid-row:1; }
+    .support-create-panel>summary small { grid-column:1/-1; grid-row:2; }
+    .support-create-panel>summary::after { grid-column:2; grid-row:1; }
+    .support-ticket-header { flex-direction:column; }
+    .support-ticket-flags { justify-content:flex-start; }
+}
+@media(max-width:520px) {
+    .support-metrics { grid-template-columns:1fr; }
+    .support-section,.support-dashboard #auditoria,.support-dashboard #notificaciones { padding:17px; }
+    .support-ticket-card>form { padding:17px; }
+    .support-ticket-card>.profile-section { margin:0 17px 17px; }
+    .support-ticket-card>.alert,.support-ticket-card>.candidate-actions { margin-inline:17px; }
+}

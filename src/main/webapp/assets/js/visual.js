@@ -14,23 +14,22 @@
     };
     const main = document.querySelector('#contenido');
     if (main && !main.hasAttribute('tabindex')) main.tabIndex = -1;
-    let settings = {};
-    try {
-        const saved = JSON.parse(localStorage.getItem('incluyelab.visual'));
-        if (saved && typeof saved === 'object' && !Array.isArray(saved)) settings = saved;
-    } catch (_) { /* La ayuda también funciona sin almacenamiento. */ }
-    let arrows = settings.arrows === true;
-    let readFocus = settings.readFocus === true;
+    // Estas ayudas requieren activación explícita en cada carga de página.
+    let arrows = false;
+    let readFocus = false;
     let muted = false;
-    const save = () => {
-        try { localStorage.setItem('incluyelab.visual', JSON.stringify({ arrows, readFocus })); }
-        catch (_) { status('La preferencia se conservará solo mientras esta página esté abierta.'); }
-    };
     const updateArrows = () => {
         document.documentElement.classList.toggle('arrow-navigation', arrows);
         all('[data-arrow-navigation]').forEach(button => button.setAttribute('aria-pressed', String(arrows)));
     };
+    const updateReadFocus = () => {
+        all('[data-read-focus-toggle]').forEach(button => {
+            button.setAttribute('aria-pressed', String(readFocus));
+            button.textContent = readFocus ? 'Desactivar voz al navegar' : 'Activar voz al navegar';
+        });
+    };
     updateArrows();
+    updateReadFocus();
 
     const supported = 'speechSynthesis' in window && typeof window.SpeechSynthesisUtterance === 'function';
     const synth = supported ? window.speechSynthesis : null;
@@ -45,7 +44,7 @@
             || voices.find(voice => /^es(?:[-_]|$)/i.test(voice.lang)) || null;
     };
     const updateSpeechControls = () => {
-        all('[data-read-page], [data-read-focus]').forEach(control => { control.disabled = !supported; });
+        all('[data-read-page], [data-read-focus-toggle]').forEach(control => { control.disabled = !supported; });
         all('[data-read-pause]').forEach(button => {
             button.disabled = !reading;
             button.textContent = paused ? 'Continuar lectura' : 'Pausar lectura';
@@ -131,13 +130,9 @@
     } else {
         status('La voz no está disponible en este navegador. Puedes usar un lector de pantalla; el contraste, el texto y el teclado siguen disponibles.');
     }
-    all('[data-read-focus]').forEach(input => {
-        input.checked = readFocus;
-        input.addEventListener('change', () => { readFocus = input.checked; save(); if (!readFocus) stop(); });
-    });
     updateSpeechControls();
     document.addEventListener('click', event => {
-        const button = event.target.closest('[data-read-page], [data-read-stop], [data-read-pause], [data-read-mute], [data-arrow-navigation]');
+        const button = event.target.closest('[data-read-page], [data-read-stop], [data-read-pause], [data-read-mute], [data-arrow-navigation], [data-read-focus-toggle]');
         if (!button || button.disabled) return;
         if (button.matches('[data-read-page]')) {
             muted = false;
@@ -154,14 +149,23 @@
         if (button.matches('[data-read-mute]')) {
             muted = !muted;
             if (muted) stop('Lectura silenciada.');
-            else status('Lectura activada. Usa las flechas para escuchar cada recuadro.');
+            else status('Lectura disponible. Activa la voz al navegar si deseas escuchar cada control.');
             updateSpeechControls();
         }
         if (button.matches('[data-arrow-navigation]')) {
             arrows = !arrows;
             updateArrows();
-            status(arrows ? 'Flechas activadas. Usa Tab dentro de los campos y Escape para detener la voz.' : 'Flechas desactivadas. Puedes seguir usando Tab.');
-            save();
+            status(arrows ? 'Flechas activadas para enlaces y botones. Dentro de los campos conservan su función habitual.' : 'Flechas desactivadas. Puedes seguir usando Tab.');
+        }
+        if (button.matches('[data-read-focus-toggle]')) {
+            readFocus = !readFocus;
+            if (!readFocus) stop('Voz al navegar desactivada.');
+            else {
+                muted = false;
+                updateSpeechControls();
+                status('Voz al navegar activada para esta página.');
+            }
+            updateReadFocus();
         }
     });
     const focusables = 'a[href], button, input:not([type="hidden"]), select, textarea, summary, [tabindex="0"]';
@@ -170,7 +174,7 @@
         if (event.key === 'Escape') { if (reading) stop('Lectura detenida.'); return; }
         if (!arrows || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey
             || !['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'].includes(event.key)
-            || event.target.closest(nativeArrows)) return;
+            || event.target.matches('input, textarea, select') || event.target.closest(nativeArrows)) return;
         const scope = modal() || document;
         const controls = all(focusables, scope).filter(node => visible(node) && !node.disabled && node.tabIndex >= 0);
         if (!controls.length) return;
