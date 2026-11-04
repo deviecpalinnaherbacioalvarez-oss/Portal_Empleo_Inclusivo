@@ -4,6 +4,7 @@ import com.incluyelab.config.Conexion;
 import com.incluyelab.model.EvaluacionRRHH;
 import com.incluyelab.model.Postulacion;
 import java.sql.Connection;
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -65,10 +66,10 @@ public class RecursosHumanosDAO {
     }
 
     public List<EvaluacionRRHH> evaluaciones(int actor) throws SQLException {
-        return listarEvaluaciones(SELECT_EVALUACION+"WHERE v.id_evaluador=? ORDER BY v.id_evaluacion DESC",actor);
+        return listarProcedimiento("ACTOR",actor);
     }
     public List<EvaluacionRRHH> listarTodas() throws SQLException {
-        return listarEvaluaciones(SELECT_EVALUACION+"ORDER BY v.id_evaluacion DESC");
+        return listarProcedimiento("TODAS",0);
     }
     public List<EvaluacionRRHH> evaluacionesPublicadasEmpresa(int usuarioEmpresa) throws SQLException {
         return listarEvaluaciones(SELECT_EVALUACION+"WHERE e.id_usuario=? AND v.estado='PUBLICADO' ORDER BY v.fecha_actualizacion DESC",usuarioEmpresa);
@@ -92,12 +93,12 @@ public class RecursosHumanosDAO {
         porcentaje(cv,"CV");porcentaje(entrevista,"entrevista");porcentaje(desempeno,"desempeño");porcentaje(compatibilidad,"compatibilidad");
         try(Connection cn=Conexion.getConnection()){cn.setAutoCommit(false);try{autorizar(cn,actor);
             try(PreparedStatement ps=cn.prepareStatement("SELECT estado FROM postulaciones WHERE id_postulacion=? FOR UPDATE")){ps.setInt(1,postulacion);try(ResultSet rs=ps.executeQuery()){if(!rs.next())throw new IllegalArgumentException("La postulación ya no existe.");if("DESEMPENO".equals(etapa)&&!"aceptado".equals(rs.getString(1)))throw new IllegalArgumentException("La evaluación de desempeño requiere una postulación aceptada.");}}
-            if(id==0){try(PreparedStatement ps=cn.prepareStatement("INSERT INTO evaluaciones_rrhh(id_postulacion,id_evaluador,observaciones,retroalimentacion,resultado,estado,etapa,puntaje_cv,puntaje_entrevista,puntaje_desempeno,porcentaje_compatibilidad) VALUES(?,?,?,?,?,?,?,?,?,?,?)")){parametros(ps,postulacion,actor,observaciones.trim(),retroalimentacion.trim(),resultado,estado,etapa,cv,entrevista,desempeno,compatibilidad);ps.executeUpdate();}}
-            else{try(PreparedStatement ps=cn.prepareStatement("UPDATE evaluaciones_rrhh SET id_postulacion=?,observaciones=?,retroalimentacion=?,resultado=?,estado=?,etapa=?,puntaje_cv=?,puntaje_entrevista=?,puntaje_desempeno=?,porcentaje_compatibilidad=? WHERE id_evaluacion=? AND id_evaluador=?")){parametros(ps,postulacion,observaciones.trim(),retroalimentacion.trim(),resultado,estado,etapa,cv,entrevista,desempeno,compatibilidad,id,actor);if(ps.executeUpdate()!=1)throw new IllegalArgumentException("Evaluación no disponible.");}}
+            if(id==0){try(CallableStatement ps=cn.prepareCall("{CALL sp_evaluacion_crear(?,?,?,?,?,?,?,?,?,?,?)}")){parametros(ps,postulacion,actor,observaciones.trim(),retroalimentacion.trim(),resultado,estado,etapa,cv,entrevista,desempeno,compatibilidad);ps.execute();}}
+            else{try(CallableStatement ps=cn.prepareCall("{CALL sp_evaluacion_actualizar(?,?,?,?,?,?,?,?,?,?,?,?)}")){parametros(ps,id,postulacion,actor,observaciones.trim(),retroalimentacion.trim(),resultado,estado,etapa,cv,entrevista,desempeno,compatibilidad);ps.execute();}}
             cn.commit();}catch(SQLException|RuntimeException ex){cn.rollback();throw ex;}}
     }
     public void eliminar(int actor,int id) throws SQLException {
-        try(Connection cn=Conexion.getConnection()){cn.setAutoCommit(false);try{autorizar(cn,actor);try(PreparedStatement ps=cn.prepareStatement("DELETE FROM evaluaciones_rrhh WHERE id_evaluacion=? AND id_evaluador=? AND estado='BORRADOR'")){parametros(ps,id,actor);if(ps.executeUpdate()!=1)throw new IllegalArgumentException("Solo puedes eliminar tus evaluaciones en borrador.");}cn.commit();}catch(SQLException|RuntimeException ex){cn.rollback();throw ex;}}
+        try(Connection cn=Conexion.getConnection()){cn.setAutoCommit(false);try{autorizar(cn,actor);try(CallableStatement ps=cn.prepareCall("{CALL sp_evaluacion_eliminar(?,?)}")){parametros(ps,id,actor);ps.execute();}cn.commit();}catch(SQLException|RuntimeException ex){cn.rollback();throw ex;}}
     }
 
     private List<EvaluacionRRHH> listarEvaluaciones(String sql,Object... valores)throws SQLException {
@@ -105,6 +106,13 @@ public class RecursosHumanosDAO {
         try(Connection cn=Conexion.getConnection();PreparedStatement ps=cn.prepareStatement(sql)){
             parametros(ps,valores);
             try(ResultSet rs=ps.executeQuery()){while(rs.next())lista.add(mapearEvaluacion(rs));}
+        }
+        return lista;
+    }
+    private List<EvaluacionRRHH> listarProcedimiento(String modo,int actor)throws SQLException{
+        List<EvaluacionRRHH> lista=new ArrayList<>();
+        try(Connection cn=Conexion.getConnection();CallableStatement ps=cn.prepareCall("{CALL sp_evaluacion_listar(?,?)}")){
+            ps.setString(1,modo);ps.setInt(2,actor);try(ResultSet rs=ps.executeQuery()){while(rs.next())lista.add(mapearEvaluacion(rs));}
         }
         return lista;
     }

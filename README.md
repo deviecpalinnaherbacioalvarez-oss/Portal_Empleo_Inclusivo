@@ -47,11 +47,19 @@ ejecutar completo:
 database/portal_empleo_inclusivo.sql
 ```
 
+Luego ejecutar la migracion de procedimientos almacenados requerida por T2:
+
+```sql
+database/migrations/20261104_crud_stored_procedures.sql
+```
+
 Para actualizar una base anterior sin borrar sus registros, ejecutar una sola vez:
 
 ```sql
 database/actualizar_version_actual.sql
 ```
+
+Despues ejecutar tambien `database/migrations/20261104_crud_stored_procedures.sql`.
 
 Despues ejecutar `database/verificar_instalacion.sql`. El resultado debe mostrar
 `INSTALACION_COMPLETA`. No se deben ejecutar manualmente todas las migraciones
@@ -162,6 +170,11 @@ La guia completa para otra computadora esta en `docs/INSTALACION_WINDOWS.md`.
 - La tabla OTP vigente forma parte del instalador y de la actualizacion consolidada.
 
 ## CRUD de Recursos Humanos y Soporte Tecnico
+
+Los cinco CRUD evaluables de T2 (cuentas internas, ofertas, postulaciones,
+evaluaciones de RR. HH. e incidencias de Soporte) utilizan 23 Stored Procedures
+invocados desde JDBC mediante `CallableStatement`. La migracion es
+`database/migrations/20261104_crud_stored_procedures.sql`.
 
 - Recursos Humanos puede crear, consultar, editar y eliminar sus evaluaciones en borrador.
   Las evaluaciones publicadas conservan el historial y ya no se eliminan.

@@ -16,6 +16,7 @@ FROM (
     UNION ALL SELECT 'trigger CONADIS insertar',EXISTS(SELECT 1 FROM information_schema.triggers WHERE trigger_schema=DATABASE() AND trigger_name='bi_conadis_obligatoria')
     UNION ALL SELECT 'trigger CONADIS actualizar',EXISTS(SELECT 1 FROM information_schema.triggers WHERE trigger_schema=DATABASE() AND trigger_name='bu_conadis_obligatoria')
     UNION ALL SELECT 'trigger CONADIS eliminar',EXISTS(SELECT 1 FROM information_schema.triggers WHERE trigger_schema=DATABASE() AND trigger_name='bd_conadis_auditada')
+    UNION ALL SELECT '23 procedimientos CRUD T2',(SELECT COUNT(*) FROM information_schema.routines WHERE routine_schema=DATABASE() AND routine_type='PROCEDURE' AND routine_name LIKE 'sp_%')>=23
 ) comprobaciones
 WHERE ok=0;
 
@@ -35,4 +36,5 @@ FROM (
     UNION ALL SELECT EXISTS(SELECT 1 FROM information_schema.triggers WHERE trigger_schema=DATABASE() AND trigger_name='bi_conadis_obligatoria')
     UNION ALL SELECT EXISTS(SELECT 1 FROM information_schema.triggers WHERE trigger_schema=DATABASE() AND trigger_name='bu_conadis_obligatoria')
     UNION ALL SELECT EXISTS(SELECT 1 FROM information_schema.triggers WHERE trigger_schema=DATABASE() AND trigger_name='bd_conadis_auditada')
+    UNION ALL SELECT (SELECT COUNT(*) FROM information_schema.routines WHERE routine_schema=DATABASE() AND routine_type='PROCEDURE' AND routine_name LIKE 'sp_%')>=23
 ) comprobaciones;

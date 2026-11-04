@@ -43,14 +43,15 @@ public class AdminDAO {
                 bloquear(cn, entidad, id);
                 if ("usuarios".equals(entidad) && id == actor) throw new IllegalArgumentException("No puedes eliminar tu propia cuenta.");
                 // Foreign keys deliberately prevent deleting records with dependent history.
-                ejecutar(cn, "DELETE FROM " + tabla(entidad) + " WHERE " + clave(entidad) + "=?", id);
+                if ("usuarios".equals(entidad)) llamar(cn,"{CALL sp_usuario_eliminar(?)}",id);
+                else ejecutar(cn, "DELETE FROM " + tabla(entidad) + " WHERE " + clave(entidad) + "=?", id);
                 cn.commit();
             } catch (SQLException | RuntimeException ex) { cn.rollback(); throw ex; }
         }
     }
 
     public void darBaja(int id,int actor)throws SQLException {
-        try(Connection cn=Conexion.getConnection()){cn.setAutoCommit(false);try{autorizar(cn,actor);if(id==actor)throw new IllegalArgumentException("No puedes desactivar tu propia cuenta.");try(PreparedStatement ps=cn.prepareStatement("UPDATE usuarios SET estado='inactivo',bloqueado_hasta=NULL WHERE id_usuario=? AND estado='activo'")){ps.setInt(1,id);if(ps.executeUpdate()!=1)throw new IllegalArgumentException("La cuenta ya está inactiva o no existe.");}cn.commit();}catch(SQLException|RuntimeException ex){cn.rollback();throw ex;}}
+        try(Connection cn=Conexion.getConnection()){cn.setAutoCommit(false);try{autorizar(cn,actor);if(id==actor)throw new IllegalArgumentException("No puedes desactivar tu propia cuenta.");llamar(cn,"{CALL sp_usuario_desactivar(?)}",id);cn.commit();}catch(SQLException|RuntimeException ex){cn.rollback();throw ex;}}
     }
 
     private void guardarUsuario(Connection cn, int id, Map<String, String> v, int actor) throws SQLException {
@@ -78,10 +79,13 @@ public class AdminDAO {
                 throw new IllegalArgumentException("Una cuenta interna solo puede recibir otro rol interno autorizado.");
             if (id == actor && !rolActual.equals(rol))
                 throw new IllegalArgumentException("No puedes modificar tu propio rol.");
-            ejecutar(cn,"UPDATE usuarios SET nombre=?,correo=?,rol=?,estado=? WHERE id_usuario=?",v.get("nombre"),v.get("correo"),rol,v.get("estado"),id);
-            if (!v.get("contrasena").isEmpty()) ejecutar(cn,"UPDATE usuarios SET contrasena=?,intentos_fallidos=0,bloqueado_hasta=NULL WHERE id_usuario=?",Passwords.hash(v.get("contrasena")),id);
+            String hash=v.get("contrasena").isEmpty()?null:Passwords.hash(v.get("contrasena"));
+            llamar(cn,"{CALL sp_usuario_actualizar_interno(?,?,?,?,?,?)}",id,v.get("nombre"),v.get("correo"),hash,rol,v.get("estado"));
         } else {
-            id = insertar(cn,"INSERT INTO usuarios(nombre,correo,contrasena,rol,estado) VALUES(?,?,?,?,?)",v.get("nombre"),v.get("correo"),Passwords.hash(v.get("contrasena")),rol,v.get("estado"));
+            try(CallableStatement cs=cn.prepareCall("{CALL sp_usuario_crear_interno(?,?,?,?,?,?)}")){
+                parametros(cs,v.get("nombre"),v.get("correo"),Passwords.hash(v.get("contrasena")),rol,v.get("estado"));
+                cs.registerOutParameter(6,Types.INTEGER);cs.execute();id=cs.getInt(6);
+            }
         }
     }
 
@@ -134,6 +138,9 @@ public class AdminDAO {
     }
     private void ejecutar(Connection cn, String sql, Object... values) throws SQLException {
         try (PreparedStatement ps=cn.prepareStatement(sql)) { parametros(ps,values); ps.executeUpdate(); }
+    }
+    private void llamar(Connection cn,String sql,Object... values)throws SQLException{
+        try(CallableStatement cs=cn.prepareCall(sql)){parametros(cs,values);cs.execute();}
     }
     private int insertar(Connection cn, String sql, Object... values) throws SQLException {
         try (PreparedStatement ps=cn.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS)) {

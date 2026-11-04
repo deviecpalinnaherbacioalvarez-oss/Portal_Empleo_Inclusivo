@@ -5,6 +5,7 @@ import com.incluyelab.model.Usuario;
 import com.incluyelab.security.Passwords;
 import com.incluyelab.security.Roles;
 import java.sql.Connection;
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -107,9 +108,8 @@ public class UsuarioDAO {
 
     public List<Usuario> listar() throws SQLException {
         List<Usuario> usuarios = new ArrayList<>();
-        String sql = "SELECT id_usuario, nombre, correo, contrasena, rol, estado, requiere_cambio_clave, correo_verificado FROM usuarios ORDER BY id_usuario DESC";
         try (Connection cn = Conexion.getConnection();
-             PreparedStatement ps = cn.prepareStatement(sql);
+             CallableStatement ps = cn.prepareCall("{CALL sp_usuario_listar()}");
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 usuarios.add(mapear(rs));

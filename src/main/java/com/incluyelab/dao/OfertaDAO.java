@@ -5,6 +5,7 @@ import com.incluyelab.model.FiltroOfertaPublica;
 import com.incluyelab.model.Oferta;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,11 +30,11 @@ public class OfertaDAO {
     }
 
     public List<Oferta> listarPorEmpresa(int idEmpresa) throws SQLException {
-        return listarPorSql("WHERE o.id_empresa=?", idEmpresa);
+        return listarProcedimiento("{CALL sp_oferta_listar_empresa(?)}",idEmpresa);
     }
 
     public List<Oferta> listarTodas() throws SQLException {
-        return listarPorSql("", 0);
+        return listarProcedimiento("{CALL sp_oferta_listar_todas()}");
     }
 
     public List<Oferta> buscarPublicas(FiltroOfertaPublica filtro) throws SQLException {
@@ -96,9 +97,8 @@ public class OfertaDAO {
     }
 
     public void registrar(Oferta oferta) throws SQLException {
-        String sql = "INSERT INTO ofertas(id_empresa, titulo, modalidad, ubicacion, adaptaciones, descripcion, salario, apoyos, estado) SELECT ?,?,?,?,?,?,?,?, 'activa' FROM empresas e JOIN usuarios u ON u.id_usuario=e.id_usuario WHERE e.id_empresa=? AND e.estado_revision='aprobada' AND u.estado='activo' AND u.rol='EMPRESA'";
         try (Connection cn = Conexion.getConnection();
-             PreparedStatement ps = cn.prepareStatement(sql)) {
+             CallableStatement ps = cn.prepareCall("{CALL sp_oferta_crear(?,?,?,?,?,?,?,?)}")) {
             ps.setInt(1, oferta.getIdEmpresa());
             ps.setString(2, oferta.getTitulo());
             ps.setString(3, oferta.getModalidad());
@@ -107,27 +107,16 @@ public class OfertaDAO {
             ps.setString(6, oferta.getDescripcion());
             ps.setBigDecimal(7, oferta.getSalario() == null ? BigDecimal.ZERO : oferta.getSalario());
             ps.setString(8, oferta.getApoyos());
-            ps.setInt(9, oferta.getIdEmpresa());
-            if(ps.executeUpdate()!=1) throw new IllegalArgumentException("Tu empresa requiere aprobacion antes de publicar.");
+            ps.execute();
         }
     }
 
     public void actualizar(Oferta oferta) throws SQLException {
-        String sql = "UPDATE ofertas o JOIN empresas e ON e.id_empresa=o.id_empresa JOIN usuarios u ON u.id_usuario=e.id_usuario "
-                + "SET o.titulo=?,o.modalidad=?,o.ubicacion=?,o.adaptaciones=?,o.descripcion=?,o.salario=?,o.apoyos=?,o.estado=? "
-                + "WHERE o.id_oferta=? AND o.id_empresa=? AND e.estado_revision='aprobada' AND u.estado='activo' AND u.rol='EMPRESA'";
-        try (Connection cn = Conexion.getConnection(); PreparedStatement ps = cn.prepareStatement(sql)) {
-            ps.setString(1, oferta.getTitulo());
-            ps.setString(2, oferta.getModalidad());
-            ps.setString(3, oferta.getUbicacion());
-            ps.setString(4, oferta.getAdaptaciones());
-            ps.setString(5, oferta.getDescripcion());
-            ps.setBigDecimal(6, oferta.getSalario());
-            ps.setString(7, oferta.getApoyos());
-            ps.setString(8, oferta.getEstado());
-            ps.setInt(9, oferta.getIdOferta());
-            ps.setInt(10, oferta.getIdEmpresa());
-            if (ps.executeUpdate() != 1) throw new IllegalArgumentException("La oferta no existe o no pertenece a tu empresa.");
+        try (Connection cn = Conexion.getConnection(); CallableStatement ps = cn.prepareCall("{CALL sp_oferta_actualizar(?,?,?,?,?,?,?,?,?,?)}")) {
+            ps.setInt(1,oferta.getIdOferta());ps.setInt(2,oferta.getIdEmpresa());ps.setString(3,oferta.getTitulo());
+            ps.setString(4,oferta.getModalidad());ps.setString(5,oferta.getUbicacion());ps.setString(6,oferta.getAdaptaciones());
+            ps.setString(7,oferta.getDescripcion());ps.setBigDecimal(8,oferta.getSalario());ps.setString(9,oferta.getApoyos());ps.setString(10,oferta.getEstado());
+            ps.execute();
         }
     }
 
@@ -135,19 +124,7 @@ public class OfertaDAO {
         try (Connection cn = Conexion.getConnection()) {
             cn.setAutoCommit(false);
             try {
-                try (PreparedStatement ps = cn.prepareStatement("SELECT id_oferta,estado FROM ofertas WHERE id_oferta=? AND id_empresa=? FOR UPDATE")) {
-                    ps.setInt(1,idOferta); ps.setInt(2,idEmpresa);
-                    try (ResultSet rs=ps.executeQuery()) {
-                        if(!rs.next()) throw new IllegalArgumentException("La oferta no existe o no pertenece a tu empresa.");
-                        if("cerrada".equals(rs.getString("estado"))) throw new IllegalArgumentException("La oferta ya se encuentra cerrada.");
-                    }
-                }
-                String aviso="La empresa cerró una oferta a la que habías postulado. Tu postulación y su historial se conservarán para consulta.";
-                try(PreparedStatement ps=cn.prepareStatement("INSERT INTO notificaciones(id_usuario,tipo,titulo,mensaje) SELECT p.id_usuario,'OFERTA_ELIMINADA','Oferta cerrada',CONCAT(?, ' Puesto: ',o.titulo) FROM postulaciones p JOIN ofertas o ON o.id_oferta=p.id_oferta WHERE p.id_oferta=?")){ps.setString(1,aviso);ps.setInt(2,idOferta);ps.executeUpdate();}
-                try (PreparedStatement ps=cn.prepareStatement("UPDATE ofertas SET estado='cerrada' WHERE id_oferta=? AND id_empresa=?")) {
-                    ps.setInt(1,idOferta); ps.setInt(2,idEmpresa);
-                    if(ps.executeUpdate()!=1) throw new IllegalArgumentException("No se pudo cerrar la oferta.");
-                }
+                try(CallableStatement ps=cn.prepareCall("{CALL sp_oferta_cerrar(?,?)}")){ps.setInt(1,idOferta);ps.setInt(2,idEmpresa);ps.execute();}
                 cn.commit();
             } catch (SQLException | RuntimeException ex) {
                 cn.rollback();
@@ -172,6 +149,15 @@ public class OfertaDAO {
                     ofertas.add(mapearOferta(rs));
                 }
             }
+        }
+        return ofertas;
+    }
+
+    private List<Oferta> listarProcedimiento(String llamada,Object... valores)throws SQLException{
+        List<Oferta> ofertas=new ArrayList<>();
+        try(Connection cn=Conexion.getConnection();CallableStatement cs=cn.prepareCall(llamada)){
+            for(int i=0;i<valores.length;i++)cs.setObject(i+1,valores[i]);
+            try(ResultSet rs=cs.executeQuery()){while(rs.next())ofertas.add(mapearOferta(rs));}
         }
         return ofertas;
     }

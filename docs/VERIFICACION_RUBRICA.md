@@ -1,5 +1,15 @@
 # IncluyeLab: evidencia tecnica para la rubrica
 
+## T2: cinco CRUD con Stored Procedures
+
+La migracion `database/migrations/20261104_crud_stored_procedures.sql` instala
+23 procedimientos para cinco CRUD reales: cuentas internas, ofertas,
+postulaciones, evaluaciones de Recursos Humanos e incidencias de Soporte.
+Los DAO los invocan mediante `CallableStatement`; no son procedimientos de
+demostracion desconectados de la web. `database/verificar_instalacion.sql`
+comprueba su presencia. La prueba transaccional de C/R/U/D finalizo con
+`CRUD_5_OK_ROLLBACK_LIMPIO`, sin conservar registros temporales.
+
 Actualizacion: 15 de octubre de 2026 (Peru).
 La presentacion en clase la prepara el estudiante. Este documento ubica el
 codigo y las funciones para demostrar la parte tecnica; no garantiza una nota.
