@@ -139,6 +139,15 @@ La guia completa para otra computadora esta en `docs/INSTALACION_WINDOWS.md`.
 - **Protección y Privacidad**:
   - Se cumple el principio de minimización de datos (Ley 29733): no se solicita diagnóstico médico (CIE-10) ni tipo de discapacidad en la verificación.
 - La estructura vigente esta incluida en el instalador y en la actualizacion consolidada.
+- El instalador incluye dos expedientes demostrativos protegidos: Sofia (`RD406923`)
+  y Luis (`RD406924`). Sus carnets y CV se almacenan bajo `WEB-INF/demo`, por lo
+  que no son descargables como recursos publicos; se sirven unicamente mediante
+  los controladores autorizados. Estos registros son datos de simulacion academica
+  revisados manualmente y no representan una consulta oficial en linea.
+- Para una base antigua ya instalada, crear primero un respaldo y ejecutar
+  `database/migrations/20261103_actualizar_reglas_conadis.sql`; despues ejecutar
+  `database/migrations/20261103_postulantes_demo_conadis_cv.sql`. Una instalacion
+  nueva solo necesita el script consolidado principal.
 
 ## Flujo de Verificación de Correo por Código OTP (Email Verification Flow)
 

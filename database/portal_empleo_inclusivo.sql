@@ -121,8 +121,8 @@ UPDATE empresas SET logo_url='https://logo.clearbit.com/rimac.com' WHERE razon_s
 UPDATE empresas SET logo_url=CASE razon_social WHEN 'Microsoft Peru' THEN 'assets/logos/microsoft.png' WHEN 'BCP' THEN 'assets/logos/bcp.svg' WHEN 'Interbank' THEN 'assets/logos/interbank.svg' WHEN 'Alicorp' THEN 'assets/logos/alicorp.png' WHEN 'Rimac Seguros' THEN 'assets/logos/rimac.png' WHEN 'Entel Peru' THEN 'assets/logos/entel.webp' WHEN 'Sodimac Peru' THEN 'assets/logos/sodimac.png' WHEN 'Inkafarma' THEN 'assets/logos/inkafarma.png' WHEN 'Yape' THEN 'assets/logos/yape.png' ELSE logo_url END, sitio_oficial=CASE razon_social WHEN 'Microsoft Peru' THEN 'https://www.microsoft.com/es-pe/' WHEN 'BCP' THEN 'https://www.viabcp.com/' WHEN 'Interbank' THEN 'https://interbank.pe/' WHEN 'Alicorp' THEN 'https://www.alicorp.com.pe/' WHEN 'Rimac Seguros' THEN 'https://www.rimac.com/' WHEN 'Entel Peru' THEN 'https://www.entel.pe/' WHEN 'Sodimac Peru' THEN 'https://www.sodimac.com.pe/' WHEN 'Inkafarma' THEN 'https://inkafarma.pe/' WHEN 'Yape' THEN 'https://www.yape.com.pe/' ELSE sitio_oficial END, pais=CASE WHEN razon_social='Microsoft Peru' THEN 'Peru' ELSE pais END WHERE razon_social IN ('Microsoft Peru','BCP','Interbank','Alicorp','Rimac Seguros','Entel Peru','Sodimac Peru','Inkafarma','Yape');
 
 INSERT IGNORE INTO perfiles_postulantes(id_perfil, id_usuario, dni, telefono, habilidades, tipo_discapacidad, adaptacion_requerida, experiencia) VALUES
-(1, 3, '70112233', '999111222', 'Atencion al cliente, Excel, soporte remoto', 'Movilidad reducida', 'Acceso con rampa y horario flexible', 'Experiencia en soporte administrativo.'),
-(2, 4, '71223344', '988777666', 'Diseno grafico, redes sociales, redaccion', 'Visual leve', 'Compatibilidad con lector de pantalla', 'Practicas en comunicacion digital.');
+(1, 3, '70568033', '999111222', 'Atencion al cliente, Excel, soporte remoto', '', 'Acceso con rampa y horario flexible', 'Experiencia en soporte administrativo.'),
+(2, 4, '45687643', '988777666', 'Diseno grafico, redes sociales, redaccion', '', 'Compatibilidad con lector de pantalla', 'Practicas en comunicacion digital.');
 
 INSERT IGNORE INTO ofertas(id_oferta, id_empresa, titulo, modalidad, ubicacion, adaptaciones, descripcion, salario) VALUES
 (1, 1, 'Asistente de soporte remoto', 'Remoto', 'Lima', 'Horario flexible, lector de pantalla, reuniones grabadas', '## Acerca del empleo\nMicrosoft busca una persona orientada al servicio para brindar soporte remoto accesible.\n## Funciones principales\n- Atender solicitudes mediante la mesa de ayuda.\n- Diagnosticar problemas de Windows, Microsoft 365 y conectividad.\n- Documentar soluciones y escalar incidentes complejos.\n## Formación\nEstudios técnicos o universitarios en Sistemas, Informática o Redes.\n## Experiencia\nSeis meses en soporte técnico o atención de incidencias.\n## Conocimientos técnicos\n- Windows 10 y 11, Microsoft 365 y configuración de periféricos.\n- Redes, acceso remoto y seguridad digital básica.\n## Condiciones laborales\n- Modalidad remota desde Lima.\n- Jornada de lunes a viernes con horario flexible.', 1800.00),
@@ -503,3 +503,50 @@ CREATE TABLE IF NOT EXISTS esquema_version (
     fecha_aplicacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 INSERT IGNORE INTO esquema_version(version) VALUES ('2026.10.31');
+
+-- Perfiles demostrativos CONADIS y CV protegidos (2026-11-03).
+SET @sofia=(SELECT id_usuario FROM usuarios WHERE correo='sofia@correo.com' AND rol='POSTULANTE' LIMIT 1);
+SET @luis=(SELECT id_usuario FROM usuarios WHERE correo='luis@correo.com' AND rol='POSTULANTE' LIMIT 1);
+SET @rrhh=(SELECT id_usuario FROM usuarios WHERE rol='RECURSOS_HUMANOS' AND estado='activo' ORDER BY id_usuario LIMIT 1);
+
+INSERT INTO verificaciones_conadis(id_usuario,rui,carnet_archivo,estado,observacion_sistema,revision_rrhh,fecha_envio,consentimiento_datos_at)
+SELECT @sofia,'406923','demo:conadis-sofia-ramirez.png','PENDIENTE','Solicitud demostrativa pendiente de revision manual.',1,NOW(),NOW()
+WHERE @sofia IS NOT NULL AND NOT EXISTS(SELECT 1 FROM verificaciones_conadis WHERE id_usuario=@sofia);
+INSERT INTO verificaciones_conadis(id_usuario,rui,carnet_archivo,estado,observacion_sistema,revision_rrhh,fecha_envio,consentimiento_datos_at)
+SELECT @luis,'406924','demo:conadis-luis-torres.png','PENDIENTE','Solicitud demostrativa pendiente de revision manual.',1,NOW(),NOW()
+WHERE @luis IS NOT NULL AND NOT EXISTS(SELECT 1 FROM verificaciones_conadis WHERE id_usuario=@luis);
+
+UPDATE verificaciones_conadis SET rui='406923',dni='70568033',apellidos='RAMIREZ QUISPE',nombres='SOFIA VALERIA',
+ carnet_archivo='demo:conadis-sofia-ramirez.png',fecha_caducidad='2030-12-31',estado='APROBADA',metodo='MANUAL',
+ motivo='Registro demostrativo revisado por Recursos Humanos.',id_revisor=@rrhh,fecha_revision=NOW(),revision_rrhh=1,
+ observacion_sistema='Revision manual de datos demostrativos; no equivale a una consulta oficial en linea.',consentimiento_datos_at=COALESCE(consentimiento_datos_at,NOW())
+WHERE id_usuario=@sofia AND @rrhh IS NOT NULL;
+UPDATE verificaciones_conadis SET rui='406924',dni='45687643',apellidos='TORRES MEDINA',nombres='LUIS ALBERTO',
+ carnet_archivo='demo:conadis-luis-torres.png',fecha_caducidad='2030-12-31',estado='APROBADA',metodo='MANUAL',
+ motivo='Registro demostrativo revisado por Recursos Humanos.',id_revisor=@rrhh,fecha_revision=NOW(),revision_rrhh=1,
+ observacion_sistema='Revision manual de datos demostrativos; no equivale a una consulta oficial en linea.',consentimiento_datos_at=COALESCE(consentimiento_datos_at,NOW())
+WHERE id_usuario=@luis AND @rrhh IS NOT NULL;
+
+INSERT INTO historial_verificaciones_conadis(id_verificacion,id_usuario,rui,carnet_archivo,estado,motivo,id_revisor,accion,fecha_evento)
+SELECT v.id_verificacion,v.id_usuario,v.rui,v.carnet_archivo,v.estado,v.motivo,v.id_revisor,'DATOS_DEMO_INTEGRADOS',NOW()
+FROM verificaciones_conadis v WHERE v.id_usuario IN (@sofia,@luis)
+AND NOT EXISTS(SELECT 1 FROM historial_verificaciones_conadis h WHERE h.id_verificacion=v.id_verificacion AND h.accion='DATOS_DEMO_INTEGRADOS');
+
+INSERT INTO perfiles_postulantes(id_usuario,dni,telefono,habilidades,adaptacion_requerida,titular,ubicacion,acerca_de,cv_nombre,cv_archivo,cv_actualizado)
+SELECT @sofia,'70568033','999111222','Java, MySQL, HTML, CSS, Bootstrap, soporte TI, trabajo en equipo','Indicaciones escritas, acceso fisico y modalidad hibrida','Estudiante de Ingenieria de Sistemas | Java, MySQL y soporte TI','San Juan de Lurigancho, Lima','Estudiante de Ingenieria de Sistemas interesada en desarrollo web, bases de datos y soporte tecnologico. Busca aportar en proyectos accesibles mediante documentacion clara, pruebas funcionales y trabajo colaborativo.','CV_Sofia_Ramirez.pdf','demo:cv-sofia-ramirez.pdf',NOW()
+WHERE @sofia IS NOT NULL ON DUPLICATE KEY UPDATE dni=VALUES(dni),telefono=VALUES(telefono),habilidades=VALUES(habilidades),adaptacion_requerida=VALUES(adaptacion_requerida),titular=VALUES(titular),ubicacion=VALUES(ubicacion),acerca_de=VALUES(acerca_de),cv_nombre=VALUES(cv_nombre),cv_archivo=VALUES(cv_archivo),cv_actualizado=NOW();
+INSERT INTO perfiles_postulantes(id_usuario,dni,telefono,habilidades,adaptacion_requerida,titular,ubicacion,acerca_de,cv_nombre,cv_archivo,cv_actualizado)
+SELECT @luis,'45687643','988777666','Diseno grafico, redes sociales, redaccion y comunicacion digital','Compatibilidad con lector de pantalla, documentos accesibles y comunicacion escrita','Asistente de comunicacion digital | Diseno grafico y redes sociales','Lima, Peru','Postulante orientado a la comunicacion digital, el diseno de piezas visuales accesibles y la gestion de contenidos para redes sociales. Destaca por su redaccion clara, organizacion y disposicion para aprender.','CV_Luis_Torres.pdf','demo:cv-luis-torres.pdf',NOW()
+WHERE @luis IS NOT NULL ON DUPLICATE KEY UPDATE dni=VALUES(dni),telefono=VALUES(telefono),habilidades=VALUES(habilidades),adaptacion_requerida=VALUES(adaptacion_requerida),titular=VALUES(titular),ubicacion=VALUES(ubicacion),acerca_de=VALUES(acerca_de),cv_nombre=VALUES(cv_nombre),cv_archivo=VALUES(cv_archivo),cv_actualizado=NOW();
+
+INSERT INTO experiencias_postulante(id_usuario,cargo,organizacion,fecha_inicio,fecha_fin,descripcion)
+SELECT @luis,'Practicante de comunicacion digital','Proyecto academico IncluyeLab','May. 2026','Oct. 2026','Experiencia demostrativa en redaccion de contenidos, preparacion de piezas graficas accesibles y apoyo en la organizacion de publicaciones para redes sociales.'
+WHERE @luis IS NOT NULL AND NOT EXISTS(SELECT 1 FROM experiencias_postulante WHERE id_usuario=@luis AND organizacion='Proyecto academico IncluyeLab');
+INSERT INTO educacion_postulante(id_usuario,institucion,carrera,fecha_inicio,fecha_fin,descripcion)
+SELECT @luis,'Programa academico de demostracion IncluyeLab','Comunicacion digital y diseno grafico','Mar. 2025','Actualidad','Formacion demostrativa en redaccion digital, composicion visual, contenidos para redes sociales y accesibilidad de documentos.'
+WHERE @luis IS NOT NULL AND NOT EXISTS(SELECT 1 FROM educacion_postulante WHERE id_usuario=@luis AND institucion='Programa academico de demostracion IncluyeLab');
+INSERT INTO certificaciones_postulante(id_usuario,nombre,emisor,fecha_emision,credencial_url)
+SELECT @luis,'Diseno de contenido digital accesible','IncluyeLab - contenido demostrativo','Sep. 2026',''
+WHERE @luis IS NOT NULL AND NOT EXISTS(SELECT 1 FROM certificaciones_postulante WHERE id_usuario=@luis AND nombre='Diseno de contenido digital accesible');
+
+INSERT IGNORE INTO esquema_version(version) VALUES ('2026.11.03');

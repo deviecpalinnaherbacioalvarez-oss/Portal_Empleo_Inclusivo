@@ -774,3 +774,8 @@ main.container.auth-layout.register-layout { max-width: 1040px; grid-template-co
 @media(max-width:560px) {
     .accessibility-bar,.a11y-controls button,.large-text .a11y-controls button { font-size:.875rem; }
 }
+.conadis-profile-card { overflow: hidden; }
+.conadis-profile-image { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: contain; background: #f7f7f7; border: 2px solid #2f5960; }
+.conadis-preview-link { display: grid; gap: 10px; color: inherit; text-decoration: none; }
+.conadis-preview-link span { display: inline-flex; align-items: center; gap: 8px; color: #4dd8de; font-weight: 700; }
+.conadis-preview-link svg { width: 18px; height: 18px; }

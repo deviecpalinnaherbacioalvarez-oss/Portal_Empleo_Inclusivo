@@ -49,6 +49,28 @@ public class ConadisFotoServlet extends HttpServlet {
                 res.sendError(404);
                 return;
             }
+            if (archivo.startsWith("demo:")) {
+                String nombre = archivo.substring("demo:".length());
+                if (!nombre.matches("conadis-[a-z0-9-]+\\.(png|jpg)")) {
+                    res.sendError(404);
+                    return;
+                }
+                try (InputStream in = getServletContext().getResourceAsStream("/WEB-INF/demo/" + nombre)) {
+                    if (in == null) {
+                        res.sendError(404);
+                        return;
+                    }
+                    res.setContentType(nombre.endsWith(".png") ? "image/png" : "image/jpeg");
+                    res.setHeader("X-Content-Type-Options", "nosniff");
+                    res.setHeader("Content-Disposition", "inline; filename=\"carnet-conadis."
+                            + (nombre.endsWith(".png") ? "png" : "jpg") + "\"");
+                    res.setHeader("Cache-Control", "private, no-store");
+                    byte[] buffer = new byte[8192];
+                    int read;
+                    while ((read = in.read(buffer)) != -1) res.getOutputStream().write(buffer, 0, read);
+                }
+                return;
+            }
             Path file;
             try { file=AlmacenCarnetConadis.resolverLectura(archivo); }
             catch(IllegalArgumentException ex){res.sendError(404);return;}

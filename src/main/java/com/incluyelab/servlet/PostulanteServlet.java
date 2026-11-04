@@ -24,6 +24,7 @@ public class PostulanteServlet extends HttpServlet {
             request.setAttribute("ofertas", new OfertaDAO().listarActivas());
             request.setAttribute("postulaciones", new PostulacionDAO().listarPorUsuario(usuario.getIdUsuario()));
             request.setAttribute("notificaciones",new com.incluyelab.dao.NotificacionDAO().listar(usuario.getIdUsuario()));
+            request.setAttribute("verificacionConadis",new com.incluyelab.dao.VerificacionConadisDAO().obtenerPorUsuario(usuario.getIdUsuario()));
         } catch (Exception ex) {
             request.setAttribute("error", ex.getMessage());
         }

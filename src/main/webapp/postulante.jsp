@@ -1,4 +1,4 @@
-<%@page import="java.util.List,java.util.Collections,java.util.Set,java.util.HashSet,com.incluyelab.model.Postulacion,com.incluyelab.model.Oferta,com.incluyelab.model.Usuario,com.incluyelab.model.Notificacion"%>
+<%@page import="java.util.List,java.util.Collections,java.util.Set,java.util.HashSet,com.incluyelab.model.Postulacion,com.incluyelab.model.Oferta,com.incluyelab.model.Usuario,com.incluyelab.model.Notificacion,com.incluyelab.model.VerificacionConadis"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@include file="WEB-INF/jspf/helpers.jspf"%>
 <%
@@ -11,6 +11,7 @@
     if (postulaciones == null) postulaciones = Collections.emptyList();
     List<Notificacion> notificaciones=(List<Notificacion>)request.getAttribute("notificaciones");
     if(notificaciones==null)notificaciones=Collections.emptyList();
+    VerificacionConadis verificacionConadis=(VerificacionConadis)request.getAttribute("verificacionConadis");
     Set<Integer> applied = new HashSet<>();
     for (Postulacion p : postulaciones) applied.add(p.getIdOferta());
     Object flashError = session.getAttribute("flashError"); session.removeAttribute("flashError");
@@ -28,8 +29,9 @@
     <div class="metric-grid">
         <div class="metric"><i data-lucide="send" aria-hidden="true"></i><div><strong><%=postulaciones.size()%></strong><span>Postulaciones enviadas</span></div></div>
         <div class="metric"><i data-lucide="briefcase-business" aria-hidden="true"></i><div><strong><%=ofertas.size()%></strong><span>Ofertas disponibles</span></div></div>
-        <div class="metric"><i data-lucide="shield-check" aria-hidden="true" style="color:#007681;"></i><div><strong>Identidad digital</strong><span class="badge badge-success" style="background:#e6f7ed; color:#185a3f; font-weight:600;"><i data-lucide="check-circle" aria-hidden="true"></i> CONADIS Verificado</span></div></div>
+        <div class="metric"><i data-lucide="shield-check" aria-hidden="true" style="color:#007681;"></i><div><strong><%=verificacionConadis==null?"Identidad digital":"RD"+h(verificacionConadis.getRui())%></strong><span class="badge badge-success" style="background:#e6f7ed; color:#185a3f; font-weight:600;"><i data-lucide="check-circle" aria-hidden="true"></i> CONADIS verificado</span></div></div>
     </div>
+    <% if(verificacionConadis!=null){ %><section class="section"><div class="section-toolbar"><div><p class="eyebrow teal">DOCUMENTOS DEL PERFIL</p><h2>Identidad y currículum</h2><p class="muted">Tus documentos se muestran mediante rutas protegidas y no son recursos públicos.</p></div><div class="candidate-actions"><a class="btn" href="<%=request.getContextPath()%>/conadis-foto?usuario=<%=usuario.getIdUsuario()%>" target="_blank" rel="noopener"><i data-lucide="badge-check" aria-hidden="true"></i> Ver carnet CONADIS</a><a class="btn primary" href="<%=request.getContextPath()%>/perfil-profesional"><i data-lucide="file-text" aria-hidden="true"></i> Ver perfil y CV</a></div></div></section><% } %>
     <section class="section" id="notificaciones"><div class="section-toolbar"><h2>Notificaciones <span class="badge"><%=notificaciones.size()%></span></h2><form method="post" action="<%=request.getContextPath()%>/notificacion"><input type="hidden" name="csrf" value="<%=h(session.getAttribute("notifCsrf"))%>"><input type="hidden" name="accion" value="todas"><button class="btn" type="submit"><i data-lucide="check-check"></i> Marcar todas como leídas</button></form></div><div class="application-list"><% for(Notificacion n:notificaciones){ %><article class="application-row <%=n.isLeida()?"notification-read":"notification-unread"%>"><div><h3><%=h(n.getTitulo())%></h3><p><%=h(n.getMensaje())%></p></div><div class="application-status"><span class="badge"><%=n.isLeida()?"Leída":"Nueva"%></span><small><%=h(n.getFechaCreacionTexto())%></small><% if(!n.isLeida()){ %><form method="post" action="<%=request.getContextPath()%>/notificacion"><input type="hidden" name="csrf" value="<%=h(session.getAttribute("notifCsrf"))%>"><input type="hidden" name="id" value="<%=n.getIdNotificacion()%>"><button class="icon-btn" type="submit" aria-label="Marcar como leída" title="Marcar como leída"><i data-lucide="check"></i></button></form><% } %></div></article><% } %><% if(notificaciones.isEmpty()){ %><p class="muted">No tienes notificaciones.</p><% } %></div></section>
     <section class="section" id="postulaciones"><h2>Mis postulaciones</h2><div class="application-list">
         <% if (postulaciones.isEmpty()) { %><div class="empty-state"><i data-lucide="briefcase-business" aria-hidden="true"></i><h3>Tu próxima oportunidad te espera</h3><p>Aún no has enviado postulaciones. Explora los puestos disponibles y da el primer paso.</p><a class="btn primary" href="#disponibles">Explorar oportunidades</a></div><% } %>

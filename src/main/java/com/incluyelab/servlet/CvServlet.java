@@ -23,6 +23,19 @@ public class CvServlet extends HttpServlet {
             if("EMPRESA".equals(actor.getRol())){try(PreparedStatement ps=cn.prepareStatement("SELECT 1 FROM postulaciones p JOIN ofertas o ON o.id_oferta=p.id_oferta JOIN empresas e ON e.id_empresa=o.id_empresa WHERE p.id_usuario=? AND e.id_usuario=?")){ps.setInt(1,postulante);ps.setInt(2,actor.getIdUsuario());try(ResultSet rs=ps.executeQuery()){if(!rs.next()){res.sendError(403);return;}}}}
             String archivo=null,nombre=null;try(PreparedStatement ps=cn.prepareStatement("SELECT cv_archivo,cv_nombre FROM perfiles_postulantes WHERE id_usuario=?")){ps.setInt(1,postulante);try(ResultSet rs=ps.executeQuery()){if(rs.next()){archivo=rs.getString(1);nombre=rs.getString(2);}}}
             if(archivo==null||archivo.isEmpty()){res.sendError(404,"El postulante no ha adjuntado un CV.");return;}
+            if(archivo.startsWith("demo:")){
+                String recurso=archivo.substring("demo:".length());
+                if(!recurso.matches("cv-[a-z0-9-]+\\.pdf")){res.sendError(404);return;}
+                try(InputStream in=getServletContext().getResourceAsStream("/WEB-INF/demo/"+recurso)){
+                    if(in==null){res.sendError(404);return;}
+                    res.setContentType("application/pdf");
+                    res.setHeader("X-Content-Type-Options","nosniff");
+                    res.setHeader("Cache-Control","private, no-store");
+                    res.setHeader("Content-Disposition","inline; filename*=UTF-8''"+java.net.URLEncoder.encode(nombre,"UTF-8").replace("+","%20"));
+                    byte[] buffer=new byte[8192];int read;while((read=in.read(buffer))!=-1)res.getOutputStream().write(buffer,0,read);
+                }
+                return;
+            }
             Path dir=Paths.get(System.getProperty("user.home"),"IncluyeLab","cv"),file=dir.resolve(archivo).normalize();if(!file.startsWith(dir)||!Files.exists(file)){res.sendError(404);return;}
             res.setContentType("application/pdf");res.setHeader("Content-Disposition","inline; filename*=UTF-8''"+java.net.URLEncoder.encode(nombre,"UTF-8").replace("+","%20"));res.setContentLengthLong(Files.size(file));Files.copy(file,res.getOutputStream());
         }catch(SQLException ex){log("No se pudo abrir el CV",ex);res.sendError(503);}
