@@ -1,5 +1,5 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@page import="java.util.List,java.util.ArrayList,java.util.Collections,java.util.Set,java.util.HashSet,com.incluyelab.model.Usuario,com.incluyelab.model.Postulacion,com.incluyelab.model.EvaluacionRRHH"%>
+<%@page import="java.util.List,java.util.ArrayList,java.util.Collections,java.util.Set,java.util.HashSet,com.incluyelab.model.Usuario,com.incluyelab.model.Postulacion,com.incluyelab.model.EvaluacionRRHH,com.incluyelab.model.VerificacionConadis"%>
 <%@include file="jspf/helpers.jspf"%>
 <%
     Usuario usuario = (Usuario) session.getAttribute("usuario");
@@ -9,8 +9,10 @@
     }
     List<Postulacion> candidatos = (List<Postulacion>) request.getAttribute("candidatos");
     List<EvaluacionRRHH> evaluaciones = (List<EvaluacionRRHH>) request.getAttribute("evaluaciones");
+    List<VerificacionConadis> solicitudes = (List<VerificacionConadis>) request.getAttribute("verificacionesConadis");
     if (candidatos == null) candidatos = Collections.emptyList();
     if (evaluaciones == null) evaluaciones = Collections.emptyList();
+    if (solicitudes == null) solicitudes = Collections.emptyList();
 
     int totalCandidatos = candidatos.size();
     int totalEvaluaciones = evaluaciones.size();
@@ -23,6 +25,14 @@
         sumaCompatibilidad += ev.getPorcentajeCompatibilidad();
     }
     int promedioCompatibilidad = totalEvaluaciones > 0 ? Math.round((float) sumaCompatibilidad / totalEvaluaciones) : 0;
+    int conadisPendientes = 0, conadisAprobadas = 0, conadisRechazadas = 0, conadisVencidas = 0;
+    for (VerificacionConadis solicitud : solicitudes) {
+        String estadoConadis = solicitud.getEstadoEfectivo();
+        if ("PENDIENTE".equals(estadoConadis)) conadisPendientes++;
+        else if ("APROBADA".equals(estadoConadis)) conadisAprobadas++;
+        else if ("RECHAZADA".equals(estadoConadis)) conadisRechazadas++;
+        else if ("VENCIDA".equals(estadoConadis)) conadisVencidas++;
+    }
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -88,6 +98,13 @@
                 <span>Compatibilidad Promedio</span>
             </div>
         </div>
+        <div class="metric conadis-metric">
+            <i data-lucide="badge-check" aria-hidden="true"></i>
+            <div>
+                <strong><%=conadisPendientes%></strong>
+                <span>CONADIS por revisar</span>
+            </div>
+        </div>
     </div>
 
     <!-- Navegación por Pestañas Corporativas -->
@@ -105,6 +122,11 @@
         <button type="button" class="corp-tab-btn" id="tab-btn-formulario" onclick="activarTab('formulario')" role="tab" aria-selected="false" aria-controls="panel-formulario">
             <i data-lucide="edit-3" aria-hidden="true"></i>
             <span id="tab-form-label">3. Formulario de Evaluación</span>
+        </button>
+        <button type="button" class="corp-tab-btn" id="tab-btn-conadis" onclick="activarTab('conadis')" role="tab" aria-selected="false" aria-controls="panel-conadis">
+            <i data-lucide="shield-check" aria-hidden="true"></i>
+            <span>4. Verificación CONADIS</span>
+            <span class="tab-badge"><%=conadisPendientes%></span>
         </button>
     </nav>
 
@@ -403,29 +425,74 @@
             </form>
         </div>
     </section>
-<% if("RECURSOS_HUMANOS".equals(usuario.getRol())){ java.util.List<com.incluyelab.model.VerificacionConadis> solicitudes=(java.util.List<com.incluyelab.model.VerificacionConadis>)request.getAttribute("verificacionesConadis");if(solicitudes==null)solicitudes=java.util.Collections.emptyList(); %>
-<section class="section" id="conadis"><div class="section-toolbar"><div><h2>Verificaciones CONADIS</h2><p class="muted">Revisión manual de solicitudes. La aprobación no afirma una consulta oficial en línea.</p></div></div>
-<form method="get" action="<%=request.getContextPath()%>/recursos-humanos#conadis" class="row g-2 mb-3">
-<div class="col-md-4"><label for="estadoConadis">Estado</label><select class="form-select" id="estadoConadis" name="estadoConadis"><option value="">Todos</option><% for(String estadoFiltro:new String[]{"PENDIENTE","APROBADA","RECHAZADA","VENCIDA"}){ %><option value="<%=estadoFiltro%>" <%=estadoFiltro.equals(request.getParameter("estadoConadis"))?"selected":""%>><%=estadoFiltro%></option><% } %></select></div>
-<div class="col-md-6"><label for="buscarConadis">Nombre, correo, DNI o RUI</label><input class="form-control" id="buscarConadis" name="buscarConadis" maxlength="120" value="<%=h(request.getParameter("buscarConadis"))%>"></div>
-<div class="col-md-2 d-flex align-items-end"><button class="btn primary w-100" type="submit">Buscar</button></div></form>
-<div class="table-wrap table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Postulante</th><th>RUI</th><th>Documento</th><th>Estado</th><th>Solicitud</th><th>Última revisión</th><th>Acción</th></tr></thead><tbody>
-<% for(com.incluyelab.model.VerificacionConadis solicitud:solicitudes){ %><tr><td><strong><%=h(solicitud.getNombreCuenta())%></strong><br><small class="muted"><%=h(solicitud.getCorreoCuenta())%></small></td><td>RD<%=h(solicitud.getRui())%></td><td><%=h(solicitud.getDni())%></td><td><span class="badge"><%=h(solicitud.getEstadoEfectivo())%></span></td><td><%=solicitud.getFechaEnvio()==null?"":solicitud.getFechaEnvio().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))%></td><td><%=solicitud.getFechaRevision()==null?"Sin revisar":h(solicitud.getNombreRevisor())+" · "+solicitud.getFechaRevision().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))%></td><td><a class="btn" href="<%=request.getContextPath()%>/revision-conadis?id=<%=solicitud.getIdUsuario()%>"><i data-lucide="clipboard-check" aria-hidden="true"></i> <%="PENDIENTE".equals(solicitud.getEstado())?"Revisar":"Consultar"%></a></td></tr><% } %>
-<% if(solicitudes.isEmpty()){ %><tr><td colspan="7">No hay verificaciones que coincidan con los filtros.</td></tr><% } %></tbody></table></div></section><% } %></main>
+<span id="conadis" aria-hidden="true"></span>
+<section id="panel-conadis" class="conadis-workspace" style="display:none;" role="tabpanel" aria-labelledby="tab-btn-conadis">
+    <div class="conadis-module-heading">
+        <div>
+            <p class="eyebrow teal">CONTROL DOCUMENTARIO · REVISIÓN MANUAL</p>
+            <h2>Verificaciones CONADIS</h2>
+            <p class="muted">Contrasta la identidad y la fotografía enviada antes de emitir una resolución. La aprobación registra una revisión interna, no una consulta oficial en línea.</p>
+        </div>
+        <span class="conadis-confidential"><i data-lucide="lock-keyhole" aria-hidden="true"></i> Información restringida</span>
+    </div>
+
+    <div class="conadis-summary" aria-label="Resumen de verificaciones CONADIS">
+        <div class="conadis-summary-item is-pending"><span>Pendientes</span><strong><%=conadisPendientes%></strong></div>
+        <div class="conadis-summary-item is-approved"><span>Aprobadas</span><strong><%=conadisAprobadas%></strong></div>
+        <div class="conadis-summary-item is-rejected"><span>Rechazadas</span><strong><%=conadisRechazadas%></strong></div>
+        <div class="conadis-summary-item is-expired"><span>Vencidas</span><strong><%=conadisVencidas%></strong></div>
+    </div>
+
+    <form method="get" action="<%=request.getContextPath()%>/recursos-humanos#conadis" class="conadis-filter-bar" aria-label="Filtros de verificaciones CONADIS">
+        <div class="field">
+            <label for="estadoConadis">Estado de revisión</label>
+            <select class="form-select" id="estadoConadis" name="estadoConadis"><option value="">Todos los estados</option><% for(String estadoFiltro:new String[]{"PENDIENTE","APROBADA","RECHAZADA","VENCIDA"}){ %><option value="<%=estadoFiltro%>" <%=estadoFiltro.equals(request.getParameter("estadoConadis"))?"selected":""%>><%=estadoFiltro%></option><% } %></select>
+        </div>
+        <div class="field conadis-search-field">
+            <label for="buscarConadis">Buscar solicitud</label>
+            <div class="input-with-icon"><i data-lucide="search" aria-hidden="true"></i><input class="form-control" id="buscarConadis" name="buscarConadis" maxlength="120" placeholder="Nombre, correo, DNI o RUI" value="<%=h(request.getParameter("buscarConadis"))%>"></div>
+        </div>
+        <button class="btn primary" type="submit"><i data-lucide="list-filter" aria-hidden="true"></i> Aplicar filtros</button>
+        <% if(request.getParameter("estadoConadis")!=null || request.getParameter("buscarConadis")!=null){ %><a class="btn" href="<%=request.getContextPath()%>/recursos-humanos#conadis">Limpiar</a><% } %>
+    </form>
+
+    <div class="conadis-table-wrap table-responsive">
+        <table class="table table-hover align-middle conadis-review-table">
+            <caption class="visually-hidden">Solicitudes de verificación CONADIS</caption>
+            <thead><tr><th scope="col">Postulante</th><th scope="col">Identificación</th><th scope="col">Estado</th><th scope="col">Envío</th><th scope="col">Responsable</th><th scope="col">Revisión</th></tr></thead>
+            <tbody>
+            <% for(VerificacionConadis solicitud:solicitudes){ String estadoVista=solicitud.getEstadoEfectivo(); String claseEstado="PENDIENTE".equals(estadoVista)?"is-pending":"APROBADA".equals(estadoVista)?"is-approved":"RECHAZADA".equals(estadoVista)?"is-rejected":"is-expired"; %>
+                <tr>
+                    <td><div class="conadis-person"><span class="conadis-person-icon"><i data-lucide="user-round" aria-hidden="true"></i></span><div><strong><%=h(solicitud.getNombreCuenta())%></strong><small><%=h(solicitud.getCorreoCuenta())%></small></div></div></td>
+                    <td><span class="conadis-id-label">RUI declarado</span><strong class="conadis-rui">RD<%=h(solicitud.getRui())%></strong><small class="muted"><%=solicitud.getDni()==null||solicitud.getDni().isEmpty()?"DNI pendiente de contraste":"DNI · "+h(solicitud.getDni())%></small></td>
+                    <td><span class="conadis-state <%=claseEstado%>"><span aria-hidden="true"></span><%=h(estadoVista)%></span></td>
+                    <td><strong><%=solicitud.getFechaEnvio()==null?"Sin fecha":solicitud.getFechaEnvio().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))%></strong><small class="muted"><%=solicitud.getFechaEnvio()==null?"":solicitud.getFechaEnvio().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))%> · Envío <%=solicitud.getEnvios()%></small></td>
+                    <td><% if(solicitud.getFechaRevision()==null){ %><span class="muted">Aún sin asignar</span><% }else{ %><strong><%=h(solicitud.getNombreRevisor())%></strong><small class="muted"><%=solicitud.getFechaRevision().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))%></small><% } %></td>
+                    <td><a class="btn conadis-review-action <%="PENDIENTE".equals(estadoVista)?"primary":""%>" href="<%=request.getContextPath()%>/revision-conadis?id=<%=solicitud.getIdUsuario()%>"><i data-lucide="<%="PENDIENTE".equals(estadoVista)?"clipboard-check":"file-search"%>" aria-hidden="true"></i> <%="PENDIENTE".equals(estadoVista)?"Revisar solicitud":"Ver expediente"%></a></td>
+                </tr>
+            <% } %>
+            <% if(solicitudes.isEmpty()){ %><tr><td colspan="6"><div class="conadis-empty"><i data-lucide="inbox" aria-hidden="true"></i><strong>Sin resultados</strong><span>No hay verificaciones que coincidan con los filtros aplicados.</span></div></td></tr><% } %>
+            </tbody>
+        </table>
+    </div>
+</section></main>
 
 <script>
     function activarTab(tabId) {
         document.getElementById('panel-candidatos').style.display = tabId === 'candidatos' ? 'block' : 'none';
         document.getElementById('panel-evaluaciones').style.display = tabId === 'evaluaciones' ? 'block' : 'none';
         document.getElementById('panel-formulario').style.display = tabId === 'formulario' ? 'block' : 'none';
+        document.getElementById('panel-conadis').style.display = tabId === 'conadis' ? 'block' : 'none';
 
         document.getElementById('tab-btn-candidatos').classList.toggle('active', tabId === 'candidatos');
         document.getElementById('tab-btn-evaluaciones').classList.toggle('active', tabId === 'evaluaciones');
         document.getElementById('tab-btn-formulario').classList.toggle('active', tabId === 'formulario');
+        document.getElementById('tab-btn-conadis').classList.toggle('active', tabId === 'conadis');
 
         document.getElementById('tab-btn-candidatos').setAttribute('aria-selected', tabId === 'candidatos');
         document.getElementById('tab-btn-evaluaciones').setAttribute('aria-selected', tabId === 'evaluaciones');
         document.getElementById('tab-btn-formulario').setAttribute('aria-selected', tabId === 'formulario');
+        document.getElementById('tab-btn-conadis').setAttribute('aria-selected', tabId === 'conadis');
 
         window.scrollTo({ top: 180, behavior: 'smooth' });
     }
@@ -505,6 +572,10 @@
         calcularCompatibilidad();
         if (window.lucide) lucide.createIcons();
     }
+
+    window.addEventListener('DOMContentLoaded', function () {
+        if (window.location.hash === '#conadis') activarTab('conadis');
+    });
 </script>
 
 <%@include file="jspf/footer.jspf"%>
