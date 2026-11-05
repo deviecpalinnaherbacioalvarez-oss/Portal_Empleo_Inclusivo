@@ -1,0 +1,328 @@
+@startuml diagrama_clases_arquitectura
+title IncluyeLab - Diagrama de clases por capas (Servlet -> DAO -> Modelo)
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+left to right direction
+hide empty members
+
+package "javax.servlet" {
+  abstract class HttpServlet
+  interface Filter
+}
+
+package "com.incluyelab.filter" {
+  class SesionFilter {
+    + {static} panel(usuario: Usuario): String
+    + doFilter(req, res, chain): void
+  }
+}
+
+package "com.incluyelab.servlet (Controlador)" {
+  class LoginServlet <<"/login">>
+  class LogoutServlet <<"/logout">>
+  class RegistroServlet <<"/registro">>
+  class VerificacionCorreoServlet <<"/verificar-correo">>
+  class InicioServlet <<"/inicio">>
+  class AccesibilidadServlet <<"/accesibilidad">>
+  class PerfilServlet <<"/perfil">>
+  class PostulanteServlet <<"/postulante">>
+  class PerfilPostulanteServlet <<"/perfil-profesional">>
+  class PostularServlet <<"/postular">>
+  class FotoPerfilServlet <<"/foto-perfil">>
+  class VerificacionConadisServlet <<"/verificacion-conadis">>
+  class ConadisFotoServlet <<"/conadis-foto">>
+  class EmpresaServlet <<"/empresa">>
+  class FichaEmpresaServlet <<"/empresa/perfil">>
+  class EmpresaPublicaServlet <<"/empresa-publica">>
+  class OfertaServlet <<"/oferta">>
+  class SeguimientoPostulacionServlet <<"/empresa/postulacion">>
+  class CandidatoServlet <<"/empresa/candidato, /recursos-humanos/candidato">>
+  class CvServlet <<"/cv">>
+  class RecursosHumanosServlet <<"/recursos-humanos">>
+  class RevisionConadisServlet <<"/revision-conadis">>
+  class RevisionEmpresaServlet <<"/revision-empresa">>
+  class SoporteTecnicoServlet <<"/soporte">>
+  class NotificacionServlet <<"/notificacion">>
+  class AdminServlet <<"/admin">>
+}
+
+package "com.incluyelab.dao (Acceso a datos)" {
+  class UsuarioDAO {
+    + obtenerActivo(id: int): Usuario
+    + autenticar(correo, contrasena): ResultadoLogin
+    + registrar(usuario: Usuario): int
+    + registrar(usuario, rui, foto): int
+    + listar(): List<Usuario>
+    + cambiarContrasena(usuario, actual, nueva): void
+  }
+  class "UsuarioDAO.ResultadoLogin" as ResultadoLogin {
+    + {static} exito(usuario): ResultadoLogin
+    + {static} invalido(restantes): ResultadoLogin
+    + {static} bloqueado(segundos): ResultadoLogin
+    + {static} temporalExpirada(): ResultadoLogin
+    + getEstado(): Estado
+  }
+  enum "ResultadoLogin.Estado" as EstadoLogin {
+    EXITO
+    INVALIDO
+    BLOQUEADO
+    TEMPORAL_EXPIRADA
+  }
+  class OtpDAO {
+    + generarOtp(idUsuario, correo, tipo): String
+    + verificarOtp(idUsuario, codigo): ResultadoOtp
+    + existeOtpPendiente(idUsuario, tipo): boolean
+  }
+  class EmpresaDAO {
+    + obtenerPorUsuario(idUsuario): Empresa
+    + listar(): List<Empresa>
+    + obtener(id): Empresa
+    + obtenerPublica(id): Empresa
+    + listarDirectorioPublico(limite, offset): List<Empresa>
+    + contarDirectorioPublico(): int
+    + listarOpcionesFiltroPublico(): List<Empresa>
+    + guardarFicha(usuario, e: Empresa): void
+    + revisar(id, version, actor, decision, motivo): void
+  }
+  class OfertaDAO {
+    + listarActivas(): List<Oferta>
+    + listarPorEmpresa(idEmpresa): List<Oferta>
+    + listarTodas(): List<Oferta>
+    + buscarPublicas(f: FiltroOfertaPublica): List<Oferta>
+    + contarPublicas(f: FiltroOfertaPublica): int
+    + obtenerPublica(idOferta): Oferta
+    + listarPublicasPorEmpresa(idEmpresa): List<Oferta>
+    + obtenerPorEmpresa(idOferta, idEmpresa): Oferta
+    + registrar(oferta: Oferta): void
+    + actualizar(oferta: Oferta): void
+    + eliminar(idOferta, idEmpresa): void
+  }
+  class PostulacionDAO {
+    + registrar(idUsuario, idOferta): void
+    + listarPorUsuario(idUsuario): List<Postulacion>
+    + listarTodas(): List<Postulacion>
+    + listarPorEmpresa(idUsuarioEmpresa): List<Postulacion>
+    + obtenerParaEmpresa(idPostulacion, idUsuarioEmpresa): Postulacion
+    + obtenerPorId(idPostulacion): Postulacion
+    + cambiarEstadoEmpresa(idPostulacion, idUsuarioEmpresa, estado): void
+    + eliminarPorEmpresa(idPostulacion, idUsuarioEmpresa): void
+    + eliminarPorUsuario(idPostulacion, idUsuario): void
+  }
+  class PerfilPostulanteDAO {
+    + obtener(usuario): PerfilPostulante
+    + guardarResumen(usuario, nombre, telefono, ...): void
+    + guardarCv(usuario, nombre, archivo): void
+    + guardarFoto(usuario, archivo): void
+    + agregarExperiencia(...) / agregarEducacion(...) / agregarCertificacion(...)
+    + actualizarExperiencia(...) / actualizarEducacion(...) / actualizarCertificacion(...)
+    + eliminar(usuario, tipo, id): void
+  }
+  class RecursosHumanosDAO {
+    + candidatos(): List<Postulacion>
+    + evaluaciones(actor): List<EvaluacionRRHH>
+    + listarTodas(): List<EvaluacionRRHH>
+    + evaluacionesPublicadasEmpresa(usuarioEmpresa): List<EvaluacionRRHH>
+    + evaluacionesPublicadasPostulacion(postulacion, usuarioEmpresa): List<EvaluacionRRHH>
+    + puedeConsultarExpediente(actor, postulacion): boolean
+    + guardar(actor, id, postulacion, observaciones, ...): void
+    + eliminar(actor, id): void
+  }
+  class VerificacionConadisDAO {
+    + estado(idUsuario): String
+    + obtenerPorUsuario(idUsuario): VerificacionConadis
+    + listar(): List<VerificacionConadis>
+    + listar(estado, busqueda): List<VerificacionConadis>
+    + historial(idVerificacion): List<HistorialVerificacionConadis>
+    + contarPendientes(): int
+    + enviarSolicitud(usuario, rui, archivo): ResultadoEnvio
+    + revisar(usuario, decision, motivo, revisor, rui, dni, ...): void
+  }
+  class IncidenciaDAO {
+    + registrarExterna(creador, correo, categoria, titulo, descripcion): void
+    + crearInterna(actor, categoria, titulo, descripcion, prioridad): void
+    + listar(actor): List<IncidenciaSoporte>
+    + listarTodas(): List<IncidenciaSoporte>
+    + buscarUsuarios(actor, termino): List<UsuarioSoporte>
+    + actualizar(actor, id, titulo, ...): void
+    + verificarIdentidad(actor, incidencia, usuario, ...): void
+    + desbloquearCuenta(actor, incidencia): void
+    + restablecerClave(actor, incidencia, temporal): String
+    + enviarNotificacion(actor, incidencia, mensaje): void
+    + historial(actor): List<AccionSoporte>
+    + eliminar(actor, id): void
+  }
+  class NotificacionDAO {
+    + listar(usuario): List<Notificacion>
+    + marcarLeida(usuario, id): void
+  }
+  class AdminDAO {
+    + esAdministradorActivo(id): boolean
+    + guardar(entidad, id, valores: Map, actor): void
+    + eliminar(entidad, id, actor): void
+    + darBaja(id, actor): void
+  }
+}
+
+package "com.incluyelab.service" {
+  interface VerificadorConadisOficial {
+    + verificar(rui, dni): Resultado
+  }
+  enum "VerificadorConadisOficial.Resultado" as ResultadoConadis {
+    COINCIDE
+    NO_COINCIDE
+    NO_DISPONIBLE
+  }
+  class VerificadorConadisNoConfigurado
+  class CorreoOtpService {
+    + enviar(destino, codigo): void
+  }
+  class AlmacenCarnetConadis <<utility>> {
+    + {static} MAX_BYTES: long = 5 MB
+    + {static} guardar(parte: Part): String
+    + {static} resolver(nombre): Path
+    + {static} resolverLectura(nombre): Path
+    + {static} eliminarSiExiste(nombre): void
+  }
+}
+
+package "com.incluyelab.security" {
+  class Roles <<utility>> {
+    + {static} POSTULANTE
+    + {static} EMPRESA
+    + {static} RECURSOS_HUMANOS
+    + {static} SOPORTE_TECNICO
+    + {static} ADMINISTRADOR_CENTRAL
+    + {static} esValido(rol): boolean
+    + {static} esRegistroPublico(rol): boolean
+    + {static} esInterno(rol): boolean
+  }
+  class Permisos <<utility>> {
+    + {static} rolRequerido(ruta): String
+    + {static} puedeAcceder(ruta, rol): boolean
+  }
+  class Passwords <<utility>> {
+    + {static} hash(password): String
+    + {static} matches(password, stored): boolean
+    + {static} policyError(password): String
+    + {static} requireStrong(password): void
+    + {static} temporary(): String
+    + {static} version(stored): String
+  }
+  class ConadisValidator <<utility>> {
+    + {static} rui(valor): String
+    + {static} dni(valor): String
+    + {static} nombre(valor, campo): String
+    + {static} caducidad(valor): LocalDate
+    + {static} mismoNombre(a, b): boolean
+  }
+}
+
+package "com.incluyelab.config" {
+  class Conexion <<utility>> {
+    + {static} getConnection(): Connection
+  }
+}
+
+package "com.incluyelab.model" as model {
+}
+note right of model
+  Ver diagrama_clases_dominio.puml
+  (Usuario, Empresa, Oferta, Postulacion, ...)
+end note
+
+' --- Herencia / implementacion ---
+HttpServlet <|-- LoginServlet
+HttpServlet <|-- LogoutServlet
+HttpServlet <|-- RegistroServlet
+HttpServlet <|-- VerificacionCorreoServlet
+HttpServlet <|-- InicioServlet
+HttpServlet <|-- AccesibilidadServlet
+HttpServlet <|-- PerfilServlet
+HttpServlet <|-- PostulanteServlet
+HttpServlet <|-- PerfilPostulanteServlet
+HttpServlet <|-- PostularServlet
+HttpServlet <|-- FotoPerfilServlet
+HttpServlet <|-- VerificacionConadisServlet
+HttpServlet <|-- ConadisFotoServlet
+HttpServlet <|-- EmpresaServlet
+HttpServlet <|-- FichaEmpresaServlet
+HttpServlet <|-- EmpresaPublicaServlet
+HttpServlet <|-- OfertaServlet
+HttpServlet <|-- SeguimientoPostulacionServlet
+HttpServlet <|-- CandidatoServlet
+HttpServlet <|-- CvServlet
+HttpServlet <|-- RecursosHumanosServlet
+HttpServlet <|-- RevisionConadisServlet
+HttpServlet <|-- RevisionEmpresaServlet
+HttpServlet <|-- SoporteTecnicoServlet
+HttpServlet <|-- NotificacionServlet
+HttpServlet <|-- AdminServlet
+Filter <|.. SesionFilter
+VerificadorConadisOficial <|.. VerificadorConadisNoConfigurado
+
+' --- Clases internas ---
+UsuarioDAO +-- ResultadoLogin
+ResultadoLogin +-- EstadoLogin
+VerificadorConadisOficial +-- ResultadoConadis
+
+' --- Dependencias Servlet -> DAO / Service ---
+LoginServlet ..> UsuarioDAO
+LoginServlet ..> VerificacionConadisDAO
+RegistroServlet ..> UsuarioDAO
+RegistroServlet ..> OtpDAO
+RegistroServlet ..> VerificacionConadisDAO
+RegistroServlet ..> CorreoOtpService
+VerificacionCorreoServlet ..> OtpDAO
+VerificacionCorreoServlet ..> CorreoOtpService
+InicioServlet ..> EmpresaDAO
+InicioServlet ..> OfertaDAO
+PerfilServlet ..> UsuarioDAO
+PostulanteServlet ..> OfertaDAO
+PostulanteServlet ..> PostulacionDAO
+PostulanteServlet ..> NotificacionDAO
+PostulanteServlet ..> VerificacionConadisDAO
+PerfilPostulanteServlet ..> PerfilPostulanteDAO
+PostularServlet ..> PostulacionDAO
+VerificacionConadisServlet ..> VerificacionConadisDAO
+EmpresaServlet ..> EmpresaDAO
+EmpresaServlet ..> OfertaDAO
+EmpresaServlet ..> PostulacionDAO
+EmpresaServlet ..> RecursosHumanosDAO
+FichaEmpresaServlet ..> EmpresaDAO
+EmpresaPublicaServlet ..> EmpresaDAO
+EmpresaPublicaServlet ..> OfertaDAO
+OfertaServlet ..> EmpresaDAO
+OfertaServlet ..> OfertaDAO
+SeguimientoPostulacionServlet ..> PostulacionDAO
+CandidatoServlet ..> PerfilPostulanteDAO
+CandidatoServlet ..> PostulacionDAO
+CandidatoServlet ..> RecursosHumanosDAO
+CvServlet ..> RecursosHumanosDAO
+RecursosHumanosServlet ..> RecursosHumanosDAO
+RecursosHumanosServlet ..> VerificacionConadisDAO
+RevisionConadisServlet ..> VerificacionConadisDAO
+RevisionEmpresaServlet ..> EmpresaDAO
+SoporteTecnicoServlet ..> IncidenciaDAO
+SoporteTecnicoServlet ..> NotificacionDAO
+NotificacionServlet ..> NotificacionDAO
+AdminServlet ..> AdminDAO
+AdminServlet ..> UsuarioDAO
+AdminServlet ..> EmpresaDAO
+AdminServlet ..> OfertaDAO
+AdminServlet ..> PostulacionDAO
+AdminServlet ..> RecursosHumanosDAO
+AdminServlet ..> IncidenciaDAO
+
+' --- Dependencias transversales ---
+SesionFilter ..> Permisos
+SesionFilter ..> UsuarioDAO
+Permisos ..> Roles
+UsuarioDAO ..> Passwords
+VerificacionConadisDAO o-- VerificadorConadisOficial
+VerificacionConadisDAO ..> ConadisValidator
+VerificacionConadisServlet ..> AlmacenCarnetConadis
+ConadisFotoServlet ..> AlmacenCarnetConadis
+RegistroServlet ..> AlmacenCarnetConadis
+"com.incluyelab.dao (Acceso a datos)" ..> Conexion : getConnection()
+"com.incluyelab.dao (Acceso a datos)" ..> model : mapea ResultSet a
+@enduml

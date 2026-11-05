@@ -1,0 +1,294 @@
+@startuml diagrama_clases_dominio
+title IncluyeLab - Diagrama de clases del dominio (paquete com.incluyelab.model)
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam packageStyle rectangle
+hide empty members
+
+note as N0
+  Se omiten getters y setters.
+  Todas las entidades implementan java.io.Serializable.
+end note
+
+package "com.incluyelab.model" {
+
+  class Usuario {
+    - idUsuario: int
+    - nombre: String
+    - correo: String
+    - contrasena: String
+    - rol: String
+    - estado: String
+    - credencialVersion: String
+    - requiereCambioClave: boolean
+    - correoVerificado: boolean
+    - conadisEstado: String
+  }
+
+  class PerfilPostulante {
+    - idUsuario: int
+    - nombre: String
+    - correo: String
+    - telefono: String
+    - titular: String
+    - ubicacion: String
+    - acercaDe: String
+    - habilidades: String
+    - adaptacionRequerida: String
+    - fotoUrl: String
+    - cvNombre: String
+    - cvArchivo: String
+    - datosConadis: VerificacionConadis
+    - experiencias: List<Experiencia>
+    - educacion: List<Educacion>
+    - certificaciones: List<Certificacion>
+    --
+    + agregarExperiencia(experiencia: Experiencia): void
+    + agregarEducacion(item: Educacion): void
+    + agregarCertificacion(certificacion: Certificacion): void
+    ==
+    CLASE INTERNA Experiencia
+    id, cargo, organizacion, inicio, fin, descripcion
+    ==
+    CLASE INTERNA Educacion
+    id, institucion, carrera, inicio, fin, descripcion
+    ==
+    CLASE INTERNA Certificacion
+    id, nombre, emisor, fecha, url
+  }
+
+  class Empresa {
+    - idEmpresa: int
+    - idUsuario: int
+    - razonSocial: String
+    - ruc: String
+    - sector: String
+    - selloInclusivo: String
+    - estadoRevision: String
+    - presentacion: String
+    - anioInicio: Integer
+    - logros: String
+    - motivoRevision: String
+    - versionRevision: int
+    - correoCuenta: String
+    - estadoCuenta: String
+    - logoUrl: String
+    - sitioOficial: String
+    - pais: String
+    - totalOfertas: int
+  }
+
+  class Oferta {
+    - idOferta: int
+    - idEmpresa: int
+    - empresa: String
+    - logoUrl: String
+    - titulo: String
+    - modalidad: String
+    - ubicacion: String
+    - adaptaciones: String
+    - apoyos: String
+    - descripcion: String
+    - salario: BigDecimal
+    - estado: String
+    ==
+    CLASE INTERNA SeccionDetalle
+    titulo
+  }
+
+  class Postulacion {
+    - idPostulacion: int
+    - idUsuario: int
+    - idOferta: int
+    - postulante: String
+    - oferta: String
+    - empresa: String
+    - estado: String
+    - fechaPostulacion: String
+    - correo: String
+    - titular: String
+    - ubicacion: String
+    - habilidades: String
+    - cvNombre: String
+  }
+
+  class EvaluacionRRHH {
+    - idEvaluacion: int
+    - idPostulacion: int
+    - idEvaluador: int
+    - nombrePostulante: String
+    - nombreEvaluador: String
+    - tituloOferta: String
+    - razonSocialEmpresa: String
+    - observaciones: String
+    - retroalimentacion: String
+    - resultado: String
+    - estado: String
+    - etapa: String
+    - puntajeCv: int
+    - puntajeEntrevista: int
+    - puntajeDesempeno: int
+    - porcentajeCompatibilidad: int
+    - fechaCreacion: LocalDateTime
+    - fechaActualizacion: LocalDateTime
+  }
+
+  class VerificacionConadis {
+    - idVerificacion: int
+    - idUsuario: int
+    - idDiscapacidad: int
+    - discapacidad: String
+    - revisionRrhh: boolean
+    - nombreCuenta: String
+    - correoCuenta: String
+    - rui: String
+    - dni: String
+    - apellidos: String
+    - nombres: String
+    - fechaCaducidad: LocalDate
+    - carnetArchivo: String
+    - estado: String
+    - metodo: String
+    - observacionSistema: String
+    - motivo: String
+    - nombreRevisor: String
+    - envios: int
+    - fechaEnvio: LocalDateTime
+    - fechaRevision: LocalDateTime
+  }
+
+  class HistorialVerificacionConadis {
+    - idHistorial: int
+    - idVerificacion: int
+    - estado: String
+    - motivo: String
+    - nombreRevisor: String
+    - accion: String
+    - fechaEvento: LocalDateTime
+  }
+
+  class Notificacion {
+    - idNotificacion: int
+    - idUsuario: int
+    - tipo: String
+    - titulo: String
+    - mensaje: String
+    - leida: boolean
+    - fechaCreacion: LocalDateTime
+  }
+
+  class CodigoOtp {
+    - idOtp: int
+    - idUsuario: int
+    - correo: String
+    - codigo: String
+    - tipo: String
+    - intentos: int
+    - estado: String
+    - fechaCreacion: LocalDateTime
+    - fechaExpiracion: LocalDateTime
+  }
+
+  class IncidenciaSoporte {
+    - idIncidencia: int
+    - numeroTicket: String
+    - idCreador: Integer
+    - idResponsable: int
+    - idUsuarioAfectado: Integer
+    - correo: String
+    - titulo: String
+    - descripcion: String
+    - origen: String
+    - categoria: String
+    - prioridad: String
+    - decision: String
+    - estado: String
+    - solucion: String
+    - nombreUsuarioAfectado: String
+    - nombreResponsable: String
+    - identidadVerificada: boolean
+    - metodoVerificacion: String
+    - motivoAccion: String
+    - fechaVerificacion: LocalDateTime
+    - correoOculto: String
+    - estadoCuenta: String
+    - intentosFallidos: int
+    - bloqueadoHasta: LocalDateTime
+    - motivoBloqueo: String
+    - fechaCreacion: LocalDateTime
+    - fechaActualizacion: LocalDateTime
+  }
+
+  class AccionSoporte {
+    - idAuditoria: int
+    - numeroTicket: String
+    - usuarioAfectado: String
+    - responsable: String
+    - accion: String
+    - motivo: String
+    - resultado: String
+    - metodoVerificacion: String
+    - fechaAccion: LocalDateTime
+  }
+
+  class UsuarioSoporte {
+    - idUsuario: int
+    - nombre: String
+    - correoOculto: String
+    - rol: String
+    - estado: String
+    - intentosFallidos: int
+    - bloqueadoHasta: LocalDateTime
+    - motivoBloqueo: String
+    - requiereCambioClave: boolean
+    - claveTemporalExpira: LocalDateTime
+  }
+
+  class FiltroOfertaPublica {
+    - texto: String
+    - ubicacion: String
+    - idEmpresa: Integer
+    - orden: String
+    - pagina: int
+    - tamanoPagina: int
+  }
+
+  class ApoyosOferta <<utility>> {
+    + {static} catalogo(): String[][]
+    + {static} validar(seleccion: String[]): String
+    + {static} codigos(seleccion: String): Set<String>
+    + {static} categorias(seleccion: String): String
+    + {static} etiquetas(seleccion: String): String
+  }
+
+  class NecesidadesAccesibilidad <<utility>> {
+    + {static} catalogo(): List<Necesidad>
+    ==
+    CLASE INTERNA Necesidad
+    codigo, nombre, funciones, implementacion, disponible
+  }
+}
+
+' --- Relaciones (segun claves id_* de la base de datos) ---
+Usuario "1" -- "0..1" PerfilPostulante : rol POSTULANTE >
+Usuario "1" -- "0..1" Empresa : rol EMPRESA >
+Usuario "1" -- "0..1" VerificacionConadis : solicita >
+Usuario "1" -- "0..*" Postulacion : realiza >
+Usuario "1" -- "0..*" Notificacion : recibe >
+Usuario "1" -- "0..*" CodigoOtp : verifica correo >
+Usuario "1" -- "0..*" EvaluacionRRHH : evalua (RRHH) >
+Usuario "1" -- "0..*" IncidenciaSoporte : crea / afecta >
+
+Empresa "1" *-- "0..*" Oferta : publica >
+Oferta "1" -- "0..*" Postulacion : recibe >
+Postulacion "1" -- "0..*" EvaluacionRRHH : evaluada en >
+
+PerfilPostulante o-- "0..1" VerificacionConadis : datosConadis
+VerificacionConadis "1" *-- "0..*" HistorialVerificacionConadis : historial >
+
+IncidenciaSoporte "1" -- "0..*" AccionSoporte : auditoria (numeroTicket) >
+UsuarioSoporte ..> Usuario : vista de soporte de
+
+Oferta ..> ApoyosOferta : usa catalogo de apoyos
+FiltroOfertaPublica ..> Oferta : filtra
+@enduml
