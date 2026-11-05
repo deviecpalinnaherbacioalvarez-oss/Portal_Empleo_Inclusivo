@@ -47,11 +47,8 @@ ejecutar completo:
 database/portal_empleo_inclusivo.sql
 ```
 
-Luego ejecutar la migracion de procedimientos almacenados requerida por T2:
-
-```sql
-database/migrations/20261104_crud_stored_procedures.sql
-```
+El instalador principal ya incluye los procedimientos almacenados requeridos por
+los cinco CRUD de la T2; una base nueva no necesita otro script.
 
 Para actualizar una base anterior sin borrar sus registros, ejecutar una sola vez:
 
@@ -59,7 +56,8 @@ Para actualizar una base anterior sin borrar sus registros, ejecutar una sola ve
 database/actualizar_version_actual.sql
 ```
 
-Despues ejecutar tambien `database/migrations/20261104_crud_stored_procedures.sql`.
+Despues ejecutar `database/migrations/20261104_crud_stored_procedures.sql` para
+instalar o actualizar los procedimientos sin borrar los datos existentes.
 
 Despues ejecutar `database/verificar_instalacion.sql`. El resultado debe mostrar
 `INSTALACION_COMPLETA`. No se deben ejecutar manualmente todas las migraciones
@@ -174,7 +172,7 @@ La guia completa para otra computadora esta en `docs/INSTALACION_WINDOWS.md`.
 Los cinco CRUD evaluables de T2 (cuentas internas, ofertas, postulaciones,
 evaluaciones de RR. HH. e incidencias de Soporte) utilizan 23 Stored Procedures
 invocados desde JDBC mediante `CallableStatement`. La migracion es
-`database/migrations/20261104_crud_stored_procedures.sql`.
+`database/migrations/20261104_crud_stored_procedures.sql` (25 procedimientos).
 
 - Recursos Humanos puede crear, consultar, editar y eliminar sus evaluaciones en borrador.
   Las evaluaciones publicadas conservan el historial y ya no se eliminan.

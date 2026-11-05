@@ -24,10 +24,10 @@ los archivos individuales de `database/migrations`. El instalador principal ya
 contiene estructura, datos academicos y cambios vigentes.
 
 Si ya existe una base anterior con datos que se deben conservar, no volver a
-importar el instalador. Ejecutar `database/actualizar_version_actual.sql`.
-En ambos casos ejecutar despues
-`database/migrations/20261104_crud_stored_procedures.sql`, que instala los
-procedimientos de los cinco CRUD requeridos por T2.
+importar el instalador. Ejecutar `database/actualizar_version_actual.sql` y luego
+`database/migrations/20261104_crud_stored_procedures.sql`. Esta migracion solo es
+necesaria al actualizar: el instalador principal ya contiene los 25 procedimientos
+de los cinco CRUD requeridos por T2.
 
 Finalmente ejecutar `database/verificar_instalacion.sql`. Debe aparecer:
 

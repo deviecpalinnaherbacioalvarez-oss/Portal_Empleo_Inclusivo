@@ -26,7 +26,7 @@ public class OfertaDAO {
     }
 
     public List<Oferta> listarActivas() throws SQLException {
-        return listarPorSql("WHERE o.estado='activa' AND e.estado_revision='aprobada' AND EXISTS (SELECT 1 FROM usuarios u WHERE u.id_usuario=e.id_usuario AND u.estado='activo' AND u.rol='EMPRESA')", 0);
+        return listarProcedimiento("{CALL sp_oferta_listar_publicas()}");
     }
 
     public List<Oferta> listarPorEmpresa(int idEmpresa) throws SQLException {
@@ -131,26 +131,6 @@ public class OfertaDAO {
                 throw ex;
             } finally { cn.setAutoCommit(true); }
         }
-    }
-
-    private List<Oferta> listarPorSql(String where, int idEmpresa) throws SQLException {
-        List<Oferta> ofertas = new ArrayList<>();
-        String sql = "SELECT o.id_oferta, o.id_empresa, e.razon_social empresa, e.logo_url, o.titulo, o.modalidad, o.ubicacion, "
-                + "o.adaptaciones, o.apoyos, o.descripcion, o.salario, o.estado "
-                + "FROM ofertas o INNER JOIN empresas e ON o.id_empresa=e.id_empresa " + where
-                + " ORDER BY o.id_oferta DESC";
-        try (Connection cn = Conexion.getConnection();
-             PreparedStatement ps = cn.prepareStatement(sql)) {
-            if (where.contains("?")) {
-                ps.setInt(1, idEmpresa);
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    ofertas.add(mapearOferta(rs));
-                }
-            }
-        }
-        return ofertas;
     }
 
     private List<Oferta> listarProcedimiento(String llamada,Object... valores)throws SQLException{

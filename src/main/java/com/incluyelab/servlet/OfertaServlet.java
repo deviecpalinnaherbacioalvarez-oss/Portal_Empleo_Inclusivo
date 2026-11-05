@@ -37,7 +37,7 @@ public class OfertaServlet extends HttpServlet {
             if("eliminar".equals(accion)) {
                 int id=Integer.parseInt(request.getParameter("id"));
                 dao.eliminar(id,empresa.getIdEmpresa());
-                request.getSession().setAttribute("empresaNotice","La oferta y sus postulaciones asociadas fueron eliminadas correctamente.");
+                request.getSession().setAttribute("empresaNotice","La oferta fue cerrada. Sus postulaciones se conservan en el historial y ya no se aceptan nuevas solicitudes.");
                 response.sendRedirect("empresa#publicadas");
                 return;
             }
@@ -63,7 +63,10 @@ public class OfertaServlet extends HttpServlet {
             }
         } catch (Exception ex) {
             log("No se pudo registrar la oferta", ex);
-            request.setAttribute("error", ex instanceof IllegalArgumentException ? "Revisa los datos y las adaptaciones seleccionadas." : "No se pudo registrar la oferta. Intenta nuevamente.");
+            String mensaje=ex instanceof IllegalArgumentException ? ex.getMessage() : "No se pudo registrar la oferta. Intenta nuevamente.";
+            if(ex instanceof java.sql.SQLException && SqlBusinessErrors.isBusinessRule((java.sql.SQLException)ex))
+                mensaje=SqlBusinessErrors.message((java.sql.SQLException)ex,"La operación fue rechazada.");
+            request.setAttribute("error",mensaje);
             try {
                 Empresa empresa = new EmpresaDAO().obtenerPorUsuario(usuario.getIdUsuario());
                 request.setAttribute("empresa",empresa);

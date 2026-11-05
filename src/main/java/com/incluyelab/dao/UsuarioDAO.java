@@ -112,7 +112,7 @@ public class UsuarioDAO {
              CallableStatement ps = cn.prepareCall("{CALL sp_usuario_listar()}");
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                usuarios.add(mapear(rs));
+                usuarios.add(mapearListado(rs));
             }
         }
         return usuarios;
@@ -161,6 +161,18 @@ public class UsuarioDAO {
         u.setEstado(rs.getString("estado"));
         u.setRequiereCambioClave(rs.getBoolean("requiere_cambio_clave"));
         try { u.setCorreoVerificado(rs.getBoolean("correo_verificado")); } catch (SQLException ignored) { u.setCorreoVerificado(true); }
+        return u;
+    }
+
+    private Usuario mapearListado(ResultSet rs) throws SQLException {
+        Usuario u = new Usuario();
+        u.setIdUsuario(rs.getInt("id_usuario"));
+        u.setNombre(rs.getString("nombre"));
+        u.setCorreo(rs.getString("correo"));
+        u.setRol(rs.getString("rol"));
+        u.setEstado(rs.getString("estado"));
+        u.setRequiereCambioClave(rs.getBoolean("requiere_cambio_clave"));
+        u.setCorreoVerificado(rs.getBoolean("correo_verificado"));
         return u;
     }
 }

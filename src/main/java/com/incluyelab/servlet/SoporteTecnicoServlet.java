@@ -33,7 +33,7 @@ public class SoporteTecnicoServlet extends HttpServlet {
             else if("restablecer".equals(accion)){String temporal=temporal();String correo=dao.restablecerClave(u.getIdUsuario(),id,temporal);req.getSession().setAttribute("claveTemporal",temporal);req.getSession().setAttribute("correoTemporal",correo);req.getSession().setAttribute("expiraTemporal","30 minutos");}
             else throw new IllegalArgumentException("Acción de soporte no permitida.");
             res.sendRedirect(req.getContextPath()+"/soporte-tecnico?ok=1");
-        }catch(IllegalArgumentException ex){req.setAttribute("error",ex.getMessage());res.setStatus(400);doGet(req,res);}catch(SQLException ex){log("No se pudo guardar la incidencia",ex);res.sendError(503);}
+        }catch(IllegalArgumentException ex){req.setAttribute("error",ex.getMessage());res.setStatus(400);doGet(req,res);}catch(SQLException ex){if(SqlBusinessErrors.isBusinessRule(ex)){req.setAttribute("error",SqlBusinessErrors.message(ex,"La operación fue rechazada."));res.setStatus(400);doGet(req,res);}else{log("No se pudo guardar la incidencia",ex);res.sendError(503,"No se pudo conectar con la base de datos.");}}
     }
     private Usuario usuario(HttpServletRequest req){HttpSession s=req.getSession(false);return s==null?null:(Usuario)s.getAttribute("usuario");}
     private int numero(HttpServletRequest req,String campo){try{int n=Integer.parseInt(req.getParameter(campo));if(n>0)return n;}catch(Exception ex){}throw new IllegalArgumentException("Selecciona una incidencia válida.");}

@@ -55,7 +55,7 @@ public class AdminServlet extends HttpServlet {
         try {
             entidad = entidad(req);
             id = Integer.parseInt(valor(req,"id"));
-            if (id < 0 || (!"guardar".equals(accion) && !"dar_baja".equals(accion)))
+            if (id < 0 || (!"guardar".equals(accion) && !"dar_baja".equals(accion) && !"eliminar".equals(accion)))
                 throw new IllegalArgumentException();
         } catch (SecurityException ex) { res.sendError(403,ex.getMessage()); return; }
           catch (IllegalArgumentException ex) { res.sendError(400,"Solicitud no valida."); return; }
@@ -63,7 +63,13 @@ public class AdminServlet extends HttpServlet {
         if ("dar_baja".equals(accion)) {
             try { dao.darBaja(id,actor.getIdUsuario());req.getSession().setAttribute("adminNotice","Cuenta desactivada. El historial se conserva.");res.sendRedirect(req.getContextPath()+"/admin#usuarios"); }
             catch (IllegalArgumentException ex) { res.sendError(400,ex.getMessage()); }
-            catch (SQLException ex) { log("No se pudo desactivar la cuenta",ex);res.sendError(503); }
+            catch (SQLException ex) { manejarErrorSql(req,res,ex,"No se pudo desactivar la cuenta"); }
+            return;
+        }
+        if ("eliminar".equals(accion)) {
+            try { dao.eliminar(entidad,id,actor.getIdUsuario());req.getSession().setAttribute("adminNotice","Cuenta eliminada definitivamente.");res.sendRedirect(req.getContextPath()+"/admin#usuarios"); }
+            catch (IllegalArgumentException ex) { req.getSession().setAttribute("adminError",ex.getMessage());res.sendRedirect(req.getContextPath()+"/admin#usuarios"); }
+            catch (SQLException ex) { manejarErrorSql(req,res,ex,"No se pudo eliminar la cuenta"); }
             return;
         }
         Map<String,String> valores = new HashMap<>();
@@ -87,8 +93,10 @@ public class AdminServlet extends HttpServlet {
         } catch (IllegalArgumentException | SQLException ex) {
             String mensaje;
             if (ex instanceof SQLException) {
-                int codigo = ((SQLException)ex).getErrorCode();
-                mensaje = codigo == 1451 ? "No se puede eliminar: existen registros relacionados. Conserva el historial; desactiva la cuenta o cierra la oferta."
+                SQLException sql=(SQLException)ex;
+                int codigo = sql.getErrorCode();
+                mensaje = SqlBusinessErrors.isBusinessRule(sql) ? SqlBusinessErrors.message(sql,"La operación fue rechazada.")
+                    : codigo == 1451 ? "No se puede eliminar: existen registros relacionados. Conserva el historial; desactiva la cuenta o cierra la oferta."
                     : codigo == 1062 ? "Ese correo ya esta registrado. Usa otro correo."
                     : "No se pudo guardar el cambio. Intenta nuevamente.";
                 log("Operacion administrativa rechazada",ex);
@@ -115,6 +123,19 @@ public class AdminServlet extends HttpServlet {
         if (u == null && "GET".equals(req.getMethod())) res.sendRedirect(req.getContextPath()+"/login?sesion=requerida");
         else res.sendError(403,"Acceso exclusivo para el Administrador Central.");
         return false;
+    }
+
+    private void manejarErrorSql(HttpServletRequest req,HttpServletResponse res,SQLException ex,String logMessage)throws IOException{
+        if(SqlBusinessErrors.isBusinessRule(ex)||ex.getErrorCode()==1451){
+            String message=ex.getErrorCode()==1451
+                    ?"No se puede eliminar esta cuenta porque conserva información relacionada. Puedes desactivarla sin perder el historial."
+                    :SqlBusinessErrors.message(ex,"La operación fue rechazada.");
+            req.getSession().setAttribute("adminError",message);
+            res.sendRedirect(req.getContextPath()+"/admin#usuarios");
+        }else{
+            log(logMessage,ex);
+            res.sendError(503,"No se pudo conectar con la base de datos.");
+        }
     }
 
     private void cargar(HttpServletRequest req) throws SQLException {

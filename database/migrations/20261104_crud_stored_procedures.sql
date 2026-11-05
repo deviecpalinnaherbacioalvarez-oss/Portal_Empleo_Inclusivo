@@ -9,6 +9,7 @@ DROP PROCEDURE IF EXISTS sp_usuario_eliminar;
 DROP PROCEDURE IF EXISTS sp_usuario_desactivar;
 DROP PROCEDURE IF EXISTS sp_oferta_listar_empresa;
 DROP PROCEDURE IF EXISTS sp_oferta_listar_todas;
+DROP PROCEDURE IF EXISTS sp_oferta_listar_publicas;
 DROP PROCEDURE IF EXISTS sp_oferta_crear;
 DROP PROCEDURE IF EXISTS sp_oferta_actualizar;
 DROP PROCEDURE IF EXISTS sp_oferta_cerrar;
@@ -23,6 +24,7 @@ DROP PROCEDURE IF EXISTS sp_evaluacion_actualizar;
 DROP PROCEDURE IF EXISTS sp_evaluacion_eliminar;
 DROP PROCEDURE IF EXISTS sp_incidencia_listar;
 DROP PROCEDURE IF EXISTS sp_incidencia_crear_interna;
+DROP PROCEDURE IF EXISTS sp_incidencia_crear_externa;
 DROP PROCEDURE IF EXISTS sp_incidencia_actualizar;
 DROP PROCEDURE IF EXISTS sp_incidencia_eliminar;
 
@@ -30,7 +32,7 @@ DELIMITER $$
 
 CREATE PROCEDURE sp_usuario_listar()
 BEGIN
-  SELECT id_usuario,nombre,correo,contrasena,rol,estado,requiere_cambio_clave,correo_verificado
+  SELECT id_usuario,nombre,correo,rol,estado,requiere_cambio_clave,correo_verificado
   FROM usuarios ORDER BY id_usuario DESC;
 END$$
 
@@ -72,6 +74,16 @@ CREATE PROCEDURE sp_oferta_listar_todas()
 BEGIN
   SELECT o.id_oferta,o.id_empresa,e.razon_social empresa,e.logo_url,o.titulo,o.modalidad,o.ubicacion,o.adaptaciones,o.apoyos,o.descripcion,o.salario,o.estado
   FROM ofertas o JOIN empresas e ON e.id_empresa=o.id_empresa ORDER BY o.id_oferta DESC;
+END$$
+
+CREATE PROCEDURE sp_oferta_listar_publicas()
+BEGIN
+  SELECT o.id_oferta,o.id_empresa,e.razon_social empresa,e.logo_url,o.titulo,o.modalidad,o.ubicacion,
+         o.adaptaciones,o.apoyos,o.descripcion,o.salario,o.estado
+  FROM ofertas o JOIN empresas e ON e.id_empresa=o.id_empresa JOIN usuarios u ON u.id_usuario=e.id_usuario
+  WHERE o.estado='activa' AND o.fecha_publicacion<=NOW() AND e.estado_revision='aprobada'
+    AND u.estado='activo' AND u.rol='EMPRESA'
+  ORDER BY o.id_oferta DESC;
 END$$
 
 CREATE PROCEDURE sp_oferta_crear(IN p_empresa INT,IN p_titulo VARCHAR(150),IN p_modalidad VARCHAR(80),IN p_ubicacion VARCHAR(120),IN p_adaptaciones VARCHAR(255),IN p_descripcion TEXT,IN p_salario DECIMAL(10,2),IN p_apoyos VARCHAR(500))
@@ -195,6 +207,20 @@ BEGIN
   FROM usuarios WHERE id_usuario=p_actor AND rol='SOPORTE_TECNICO' AND estado='activo';
   IF ROW_COUNT()<>1 THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='La cuenta no tiene acceso de Soporte.'; END IF;
   UPDATE incidencias_soporte SET numero_ticket=CONCAT('INC-',LPAD(id_incidencia,8,'0')) WHERE id_incidencia=LAST_INSERT_ID();
+END$$
+
+CREATE PROCEDURE sp_incidencia_crear_externa(IN p_creador INT,IN p_correo VARCHAR(150),IN p_categoria VARCHAR(20),IN p_titulo VARCHAR(150),IN p_descripcion VARCHAR(4000),OUT p_id INT)
+BEGIN
+  INSERT INTO incidencias_soporte(id_creador,id_responsable,id_usuario_afectado,correo,titulo,descripcion,origen,categoria,prioridad,decision,estado,numero_ticket)
+  SELECT p_creador,s.id_usuario,(SELECT u.id_usuario FROM usuarios u WHERE LOWER(u.correo)=LOWER(p_correo) LIMIT 1),
+         p_correo,p_titulo,p_descripcion,'EXTERNA',p_categoria,'MEDIA','PENDIENTE','PENDIENTE',CONCAT('TMP-',LEFT(REPLACE(UUID(),'-',''),26))
+  FROM usuarios s WHERE s.rol='SOPORTE_TECNICO' AND s.estado='activo' ORDER BY s.id_usuario LIMIT 1;
+  IF ROW_COUNT()<>1 THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='No hay personal de soporte disponible.'; END IF;
+  SET p_id=LAST_INSERT_ID();
+  UPDATE incidencias_soporte SET numero_ticket=CONCAT('INC-',LPAD(id_incidencia,8,'0')) WHERE id_incidencia=p_id;
+  INSERT INTO notificaciones(id_usuario,tipo,titulo,mensaje)
+  SELECT id_responsable,'REPORTE_SOPORTE','Nuevo reporte recibido',CONCAT('Ticket ',numero_ticket,' · Categoría: ',categoria,' · ',titulo)
+  FROM incidencias_soporte WHERE id_incidencia=p_id;
 END$$
 
 CREATE PROCEDURE sp_incidencia_actualizar(IN p_actor INT,IN p_id INT,IN p_titulo VARCHAR(150),IN p_descripcion VARCHAR(4000),IN p_categoria VARCHAR(20),IN p_prioridad VARCHAR(10),IN p_decision VARCHAR(20),IN p_estado VARCHAR(20),IN p_solucion VARCHAR(4000))
