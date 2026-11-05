@@ -38,4 +38,12 @@ CALL sp_incidencia_actualizar(@soporte_prueba,@incidencia_prueba,'Incidencia tem
 CALL sp_incidencia_eliminar(@soporte_prueba,@incidencia_prueba);
 
 ROLLBACK;
-SELECT IF(EXISTS(SELECT 1 FROM usuarios WHERE correo=@correo_prueba),'ERROR_QUEDARON_DATOS','CRUD_5_OK_ROLLBACK_LIMPIO') AS resultado;
+SELECT IF(
+    EXISTS(
+        SELECT 1
+        FROM usuarios
+        WHERE correo = CONVERT(@correo_prueba USING utf8mb4) COLLATE utf8mb4_unicode_ci
+    ),
+    'ERROR_QUEDARON_DATOS',
+    'CRUD_5_OK_ROLLBACK_LIMPIO'
+) AS resultado;

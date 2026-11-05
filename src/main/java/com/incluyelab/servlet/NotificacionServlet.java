@@ -15,5 +15,9 @@ public class NotificacionServlet extends HttpServlet {
         try{int id="todas".equals(req.getParameter("accion"))?0:Integer.parseInt(req.getParameter("id"));if(id<0)throw new NumberFormatException();new NotificacionDAO().marcarLeida(usuario.getIdUsuario(),id);res.sendRedirect(req.getContextPath()+panel(usuario)+"#notificaciones");}
         catch(Exception ex){res.sendError(400,"Notificación no válida.");}
     }
-    private String panel(Usuario u){return "SOPORTE_TECNICO".equals(u.getRol())?"/soporte-tecnico":"/postulante";}
+    private String panel(Usuario u){
+        if("SOPORTE_TECNICO".equals(u.getRol()))return "/soporte-tecnico";
+        if("EMPRESA".equals(u.getRol()))return "/empresa";
+        return "/postulante";
+    }
 }

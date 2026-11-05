@@ -1,6 +1,6 @@
 # Portal de Empleo Inclusivo
 
-## Version actual (31 de octubre de 2026)
+## Version actual (4 de noviembre de 2026)
 
 Esta carpeta es la base oficial del proyecto. Incluye la web publica JDBC,
 accesibilidad, cinco roles, verificacion CONADIS manual, correo OTP, perfiles,
@@ -38,10 +38,41 @@ Portal Web de Empleo Inclusivo para la reduccion de desigualdades laborales, ali
 - Recursos Humanos: `marco.salcedo@incluyelab.com` / `Minecraft4.exe`
 - Soporte Tecnico: `daniel.advincula@incluyelab.com` / `Minecraft5.exe`
 
+Estas cuentas y contraseñas son exclusivamente académicas. No deben reutilizarse
+en un despliegue público.
+
+## Inicio rápido con Docker
+
+Requisitos: Docker Desktop con Docker Compose v2 y puertos 8084, 3307 y 8025
+disponibles. La aplicación conserva Java 11 y Tomcat 9 (`javax.servlet`).
+
+```powershell
+Copy-Item .env.example .env
+docker compose up --build
+```
+
+Abrir:
+
+- Portal: `http://localhost:8084/Portal_Empleo_Inclusivo/inicio`
+- Bandeja de correos OTP local: `http://localhost:8025`
+
+Compose espera a que MySQL esté saludable antes de iniciar Tomcat. La base se
+inicializa automáticamente solo cuando `mysql_data` está vacío; los reinicios
+conservan los datos. Las cargas se guardan en `incluyelab_data`, mientras que los
+CV y carnets ficticios de Sofía y Luis ya están protegidos dentro del WAR.
+
+```powershell
+docker compose down        # conserva datos
+docker compose down -v     # elimina solo los volúmenes Docker de esta instalación
+```
+
+Los valores predeterminados son conocidos y sirven solo para demostración local.
+En un equipo compartido deben cambiarse en `.env`, archivo ignorado por Git.
+
 ## Instalacion de la base de datos
 
-Para una computadora nueva, abrir MySQL Workbench con una cuenta administradora y
-ejecutar completo:
+Para una instalación manual nueva, abrir MySQL Workbench con una cuenta
+administradora y ejecutar completo:
 
 ```sql
 database/portal_empleo_inclusivo.sql
@@ -49,6 +80,14 @@ database/portal_empleo_inclusivo.sql
 
 El instalador principal ya incluye los procedimientos almacenados requeridos por
 los cinco CRUD de la T2; una base nueva no necesita otro script.
+
+El script no publica una contraseña de MySQL. Después de importarlo, crear una
+cuenta de aplicación con una clave elegida localmente:
+
+```sql
+CREATE USER IF NOT EXISTS 'incluyelab_app'@'localhost' IDENTIFIED BY '<CLAVE_LOCAL_SEGURA>';
+GRANT ALL PRIVILEGES ON portal_empleo_inclusivo.* TO 'incluyelab_app'@'localhost';
+```
 
 Para actualizar una base anterior sin borrar sus registros, ejecutar una sola vez:
 
@@ -60,13 +99,13 @@ Despues ejecutar `database/migrations/20261104_crud_stored_procedures.sql` para
 instalar o actualizar los procedimientos sin borrar los datos existentes.
 
 Despues ejecutar `database/verificar_instalacion.sql`. El resultado debe mostrar
-`INSTALACION_COMPLETA`. No se deben ejecutar manualmente todas las migraciones
+`INSTALACION_COMPLETA` con 19 requisitos. No se deben ejecutar manualmente todas las migraciones
 historicas; permanecen en `database/migrations` solo como historial tecnico.
 
 La conexion por defecto usa:
 
 - Base de datos: `portal_empleo_inclusivo`
-- El instalador crea el usuario local de desarrollo `incluyelab_app`.
+- Docker crea `incluyelab_app` desde `.env`; en modo manual lo crea el administrador de MySQL.
 - En el equipo principal no existe un `Resource` de Tomcat: se utiliza el archivo
   externo `%USERPROFILE%\IncluyeLab\db.properties`.
 - Orden de conexion: `jdbc/IncluyeLab` real de Tomcat; variables o propiedades JVM
@@ -163,14 +202,16 @@ La guia completa para otra computadora esta en `docs/INSTALACION_WINDOWS.md`.
   - Solo se almacena el hash PBKDF2 del código en `codigos_otp`, con vigencia de 15 minutos y límite de 5 intentos.
 - **Ruta y Experiencia de Usuario**:
   - `/verificar-correo`: Interfaz con 6 casillas numéricas con avance automático al escribir, soporte para pegar (Ctrl+V) y temporizador de expiración.
-  - El código se entrega al correo mediante SMTP y nunca se muestra ni se autocompleta en la web. Configura `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASSWORD`, `MAIL_FROM` y, opcionalmente, `MAIL_STARTTLS` en Tomcat o en el entorno.
+  - El código se entrega por SMTP y nunca se muestra ni se autocompleta en la web.
+  - Docker usa Mailpit sin autenticación (`MAIL_AUTH=false`); el código se consulta en `http://localhost:8025`.
+  - Para SMTP real configura `MAIL_HOST`, `MAIL_PORT`, `MAIL_FROM`, `MAIL_AUTH=true`, `MAIL_USER`, `MAIL_PASSWORD` y `MAIL_STARTTLS` según el proveedor.
   - **Control de Acceso**: `SesionFilter` y `LoginServlet` exigen la validación del correo (`correo_verificado = 1`) antes de permitir el acceso al resto de las funciones del sistema.
 - La tabla OTP vigente forma parte del instalador y de la actualizacion consolidada.
 
 ## CRUD de Recursos Humanos y Soporte Tecnico
 
 Los cinco CRUD evaluables de T2 (cuentas internas, ofertas, postulaciones,
-evaluaciones de RR. HH. e incidencias de Soporte) utilizan 23 Stored Procedures
+evaluaciones de RR. HH. e incidencias de Soporte) utilizan Stored Procedures
 invocados desde JDBC mediante `CallableStatement`. La migracion es
 `database/migrations/20261104_crud_stored_procedures.sql` (25 procedimientos).
 
@@ -362,17 +403,17 @@ los restos del prototipo de suscripciones.
 Las evaluaciones de Recursos Humanos se relacionan con la postulacion, la oferta y su
 empresa. Cuando RR. HH. marca una evaluacion como `PUBLICADO`, la empresa propietaria
 puede verla en su panel y dentro del perfil del candidato; los borradores siguen siendo
-internos. La empresa puede eliminar sus propias postulaciones y ofertas. Al eliminar una
-oferta se eliminan tambien sus postulaciones y evaluaciones relacionadas, previa
-confirmacion. El postulante puede eliminar unicamente sus propias postulaciones. Todas
+internos. La empresa puede eliminar sus propias postulaciones y cerrar sus ofertas.
+Al cerrar una oferta deja de recibir nuevas solicitudes y conserva postulaciones y
+evaluaciones como historial. El postulante puede eliminar unicamente sus propias postulaciones. Todas
 estas acciones validan rol, propiedad y token CSRF en el servidor.
 
 ### Notificaciones internas
 
 La empresa puede pasar una postulacion a revision, admitirla o eliminarla; la opcion
 de rechazo empresarial fue retirada. Cuando elimina una postulacion, el postulante
-recibe una notificacion interna. Si elimina una oferta, se notifica a todos sus
-postulantes antes de borrar las postulaciones y evaluaciones relacionadas.
+recibe una notificacion interna. Si cierra una oferta, se notifica a sus postulantes
+y se conserva el historial.
 
 El formulario de Seguridad y reportes solicita el correo de contacto. Al enviarlo,
 la incidencia y una notificacion se asignan automaticamente a una cuenta activa de
@@ -380,4 +421,42 @@ Soporte Tecnico. El correo identifica la cuenta afectada y queda visible para el
 seguimiento dentro del portal; no se usa un servicio SMTP externo.
 
 Las notificaciones forman parte de los dos scripts oficiales de base de datos.
+
+### Conversaciones de postulaciones
+
+Cada postulación dispone de una conversación privada y persistente entre el
+postulante y la empresa propietaria de la oferta. El postulante accede desde
+**Mis postulaciones** y la empresa desde **Candidatos**. Los mensajes se guardan
+en `mensajes_postulacion`, generan una notificación para el destinatario y se
+marcan como leídos al abrir el hilo. El servidor valida sesión, rol, propiedad de
+la postulación y token CSRF; otra empresa o postulante no puede consultar el hilo
+cambiando el identificador de la URL. No es un bot ni utiliza WhatsApp.
+
+Las instalaciones anteriores pueden incorporar esta función mediante
+`database/actualizar_version_actual.sql` o la migración independiente
+`database/migrations/20261104_mensajeria_postulaciones.sql`.
+
+## Archivos privados y portabilidad
+
+- Los carnets y CV ficticios de Sofía y Luis están en `WEB-INF/demo` y se sirven
+  únicamente mediante servlets autorizados.
+- Las cargas nuevas usan `~/IncluyeLab/cv`, `~/IncluyeLab/fotos` y
+  `~/IncluyeLab/privado/conadis`; no se guardan en Git.
+- En Docker esas rutas quedan dentro del volumen persistente `incluyelab_data`.
+- No se exportan CV, fotos, carnets ni configuraciones privadas de esta laptop.
+
+## Actualización y solución de problemas
+
+- Base existente: hacer respaldo, ejecutar `database/actualizar_version_actual.sql`,
+  luego `database/migrations/20261104_crud_stored_procedures.sql` y finalmente
+  `database/verificar_instalacion.sql`.
+- Portada sin datos: revisar `DB_URL`, `DB_USER`, `DB_PASSWORD` y el estado de MySQL;
+  no agregar un `resource-ref` vacío a `web.xml`.
+- OTP en Docker: abrir Mailpit y revisar `docker compose logs mailpit app`.
+- Puerto ocupado: cambiar `APP_PORT`, `MYSQL_PORT` o `MAILPIT_WEB_PORT` en `.env`.
+- `docker compose down` conserva datos; `down -v` crea una instalación nueva en el
+  próximo arranque.
+
+La auditoría de portabilidad y las pruebas pendientes están en
+`docs/PORTABILIDAD.md`.
 

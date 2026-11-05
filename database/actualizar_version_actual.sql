@@ -69,7 +69,23 @@ CREATE TABLE IF NOT EXISTS experiencias_postulante (id_experiencia INT AUTO_INCR
 CREATE TABLE IF NOT EXISTS educacion_postulante (id_educacion INT AUTO_INCREMENT PRIMARY KEY,id_usuario INT NOT NULL,institucion VARCHAR(180) NOT NULL,carrera VARCHAR(180) NOT NULL,fecha_inicio VARCHAR(30) NOT NULL,fecha_fin VARCHAR(30) NOT NULL,descripcion VARCHAR(2000) NOT NULL DEFAULT '',FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE);
 CREATE TABLE IF NOT EXISTS certificaciones_postulante (id_certificacion INT AUTO_INCREMENT PRIMARY KEY,id_usuario INT NOT NULL,nombre VARCHAR(200) NOT NULL,emisor VARCHAR(150) NOT NULL,fecha_emision VARCHAR(30) NOT NULL,credencial_url VARCHAR(500) NOT NULL DEFAULT '',FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE);
 
+-- Mensajeria privada entre la empresa y el postulante, siempre vinculada a una postulacion existente.
+CREATE TABLE IF NOT EXISTS mensajes_postulacion (
+    id_mensaje BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_postulacion INT NOT NULL,
+    id_remitente INT NOT NULL,
+    mensaje VARCHAR(2000) NOT NULL,
+    leido TINYINT(1) NOT NULL DEFAULT 0,
+    fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_mensaje_postulacion FOREIGN KEY(id_postulacion) REFERENCES postulaciones(id_postulacion) ON DELETE CASCADE,
+    CONSTRAINT fk_mensaje_remitente FOREIGN KEY(id_remitente) REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+    INDEX idx_mensaje_hilo(id_postulacion,id_mensaje),
+    INDEX idx_mensaje_no_leido(id_postulacion,leido,id_remitente)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Catalogo y verificacion CONADIS manual.
+-- El padron local de versiones antiguas era ficticio y no representa una fuente oficial.
+DROP TABLE IF EXISTS padron_conadis;
 CREATE TABLE IF NOT EXISTS discapacidades (id_discapacidad TINYINT UNSIGNED NOT NULL,codigo VARCHAR(40) NOT NULL,nombre VARCHAR(180) NOT NULL,PRIMARY KEY(id_discapacidad),UNIQUE KEY uk_discapacidades_codigo(codigo),UNIQUE KEY uk_discapacidades_nombre(nombre)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 INSERT IGNORE INTO discapacidades VALUES
 (1,'visual','Visual (ceguera o baja visión)'),(2,'fisica_motora','Física o motora'),(3,'auditiva','Auditiva (sordera o hipoacusia)'),(4,'intelectual','Intelectual'),(5,'habla','Dificultades del habla (afasia, disartria, etc.)'),(6,'autismo_sensorial','Autismo con necesidades sensoriales'),(7,'dislexia','Dislexia y dificultades de lectura'),(8,'movilidad_manual','Movilidad manual muy limitada'),(9,'sordoceguera','Sordoceguera'),(10,'psicosocial','Psicosocial'),(11,'tdah','TDAH con necesidades de apoyo'),(12,'cronicas_fatiga','Discapacidades asociadas a condiciones crónicas o fatiga'),(13,'fotosensibilidad','Fotosensibilidad o sensibilidad a estímulos visuales');
@@ -87,6 +103,8 @@ SET estado='RECHAZADA',metodo=NULL,
     id_revisor=NULL,fecha_revision=NULL
 WHERE metodo='AUTOMATICA';
 ALTER TABLE verificaciones_conadis MODIFY rui VARCHAR(20) NULL,MODIFY dni CHAR(8) NULL,MODIFY apellidos VARCHAR(80) NULL,MODIFY nombres VARCHAR(80) NULL,MODIFY fecha_caducidad DATE NULL,MODIFY estado ENUM('PENDIENTE','APROBADA','RECHAZADA','VENCIDA') NOT NULL DEFAULT 'PENDIENTE',MODIFY metodo ENUM('MANUAL') NULL;
+SET @ddl=IF((SELECT COUNT(*) FROM verificaciones_conadis WHERE rui IS NULL OR TRIM(rui)='')=0,'ALTER TABLE verificaciones_conadis MODIFY rui VARCHAR(20) NOT NULL','SELECT ''Revisa solicitudes sin RUI antes de endurecer la columna'''); PREPARE u FROM @ddl; EXECUTE u; DEALLOCATE PREPARE u;
+ALTER TABLE verificaciones_conadis MODIFY revision_rrhh TINYINT(1) NOT NULL DEFAULT 1,MODIFY consentimiento_datos_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
 SET @ddl=IF((SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema=DATABASE() AND table_name='verificaciones_conadis' AND column_name='rui' AND non_unique=0)=0,'ALTER TABLE verificaciones_conadis ADD UNIQUE KEY uq_verificacion_rui(rui)','SELECT 1'); PREPARE u FROM @ddl; EXECUTE u; DEALLOCATE PREPARE u;
 SET @ddl=IF((SELECT COUNT(*) FROM information_schema.key_column_usage WHERE table_schema=DATABASE() AND table_name='perfiles_postulantes' AND column_name='id_discapacidad' AND referenced_table_name='discapacidades')=0,'ALTER TABLE perfiles_postulantes ADD CONSTRAINT fk_perfil_discapacidad FOREIGN KEY(id_discapacidad) REFERENCES discapacidades(id_discapacidad)','SELECT 1'); PREPARE u FROM @ddl; EXECUTE u; DEALLOCATE PREPARE u;
 SET @ddl=IF((SELECT COUNT(*) FROM information_schema.key_column_usage WHERE table_schema=DATABASE() AND table_name='verificaciones_conadis' AND column_name='id_discapacidad' AND referenced_table_name='discapacidades')=0,'ALTER TABLE verificaciones_conadis ADD CONSTRAINT fk_verificacion_discapacidad FOREIGN KEY(id_discapacidad) REFERENCES discapacidades(id_discapacidad)','SELECT 1'); PREPARE u FROM @ddl; EXECUTE u; DEALLOCATE PREPARE u;
@@ -115,9 +133,9 @@ SET @ddl=IF((SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=
 UPDATE incidencias_soporte SET numero_ticket=CONCAT('INC-',LPAD(id_incidencia,8,'0')) WHERE numero_ticket IS NULL OR numero_ticket='';
 SET @ddl=IF((SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema=DATABASE() AND table_name='incidencias_soporte' AND index_name='uq_incidencia_ticket')=0,'ALTER TABLE incidencias_soporte MODIFY numero_ticket VARCHAR(30) NOT NULL, ADD UNIQUE KEY uq_incidencia_ticket(numero_ticket)','SELECT 1'); PREPARE u FROM @ddl; EXECUTE u; DEALLOCATE PREPARE u;
 
-CREATE TABLE IF NOT EXISTS notificaciones (id_notificacion INT AUTO_INCREMENT PRIMARY KEY,id_usuario INT NOT NULL,tipo ENUM('POSTULACION_ELIMINADA','OFERTA_ELIMINADA','REPORTE_SOPORTE','CONADIS_ESTADO','CUENTA_DESBLOQUEADA','CLAVE_TEMPORAL','CLAVE_CAMBIADA','ACTIVIDAD_SOSPECHOSA','MENSAJE_SOPORTE') NOT NULL,titulo VARCHAR(150) NOT NULL,mensaje VARCHAR(1000) NOT NULL,leida TINYINT(1) NOT NULL DEFAULT 0,fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE);
+CREATE TABLE IF NOT EXISTS notificaciones (id_notificacion INT AUTO_INCREMENT PRIMARY KEY,id_usuario INT NOT NULL,tipo ENUM('POSTULACION_ELIMINADA','OFERTA_ELIMINADA','REPORTE_SOPORTE','CONADIS_ESTADO','CUENTA_DESBLOQUEADA','CLAVE_TEMPORAL','CLAVE_CAMBIADA','ACTIVIDAD_SOSPECHOSA','MENSAJE_SOPORTE','NUEVO_MENSAJE') NOT NULL,titulo VARCHAR(150) NOT NULL,mensaje VARCHAR(1000) NOT NULL,leida TINYINT(1) NOT NULL DEFAULT 0,fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE);
 UPDATE notificaciones SET tipo='REPORTE_SOPORTE' WHERE tipo NOT IN ('POSTULACION_ELIMINADA','OFERTA_ELIMINADA','REPORTE_SOPORTE','CONADIS_ESTADO','CUENTA_DESBLOQUEADA','CLAVE_TEMPORAL','CLAVE_CAMBIADA','ACTIVIDAD_SOSPECHOSA','MENSAJE_SOPORTE');
-ALTER TABLE notificaciones MODIFY tipo ENUM('POSTULACION_ELIMINADA','OFERTA_ELIMINADA','REPORTE_SOPORTE','CONADIS_ESTADO','CUENTA_DESBLOQUEADA','CLAVE_TEMPORAL','CLAVE_CAMBIADA','ACTIVIDAD_SOSPECHOSA','MENSAJE_SOPORTE') NOT NULL;
+ALTER TABLE notificaciones MODIFY tipo ENUM('POSTULACION_ELIMINADA','OFERTA_ELIMINADA','REPORTE_SOPORTE','CONADIS_ESTADO','CUENTA_DESBLOQUEADA','CLAVE_TEMPORAL','CLAVE_CAMBIADA','ACTIVIDAD_SOSPECHOSA','MENSAJE_SOPORTE','NUEVO_MENSAJE') NOT NULL;
 CREATE TABLE IF NOT EXISTS auditoria_soporte (id_auditoria BIGINT AUTO_INCREMENT PRIMARY KEY,id_incidencia INT NOT NULL,id_usuario_afectado INT NOT NULL,id_responsable INT NOT NULL,accion ENUM('IDENTIDAD_VERIFICADA','IDENTIDAD_RECHAZADA','CUENTA_DESBLOQUEADA','CLAVE_TEMPORAL_GENERADA','NOTIFICACION_ENVIADA') NOT NULL,motivo VARCHAR(1000) NOT NULL,resultado ENUM('EXITO','RECHAZADO','ERROR') NOT NULL,metodo_verificacion VARCHAR(80) NOT NULL DEFAULT '',fecha_accion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY(id_incidencia) REFERENCES incidencias_soporte(id_incidencia),FOREIGN KEY(id_usuario_afectado) REFERENCES usuarios(id_usuario),FOREIGN KEY(id_responsable) REFERENCES usuarios(id_usuario));
 
 -- Reglas de auditoria CONADIS. Requieren privilegio TRIGGER.

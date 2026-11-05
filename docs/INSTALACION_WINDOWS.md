@@ -2,10 +2,26 @@
 
 ## Requisitos
 
-- Java 11 o superior.
-- Apache NetBeans con Maven.
-- Apache Tomcat 9.
-- MySQL Server 8 y MySQL Workbench.
+- Opción recomendada: Docker Desktop con Compose v2.
+- Opción manual: Java 11, Maven/NetBeans, Apache Tomcat 9, MySQL Server 8 y Workbench.
+
+## Opción A: Docker
+
+Desde la raíz del proyecto:
+
+```powershell
+Copy-Item .env.example .env
+docker compose up --build
+```
+
+Portal: `http://localhost:8084/Portal_Empleo_Inclusivo/inicio`.
+Mailpit para OTP: `http://localhost:8025`.
+
+MySQL se inicializa solo al crear el volumen vacío. `docker compose down` conserva
+la base y los archivos cargados. `docker compose down -v` elimina exclusivamente
+los volúmenes de esta instalación Docker.
+
+## Opción B: NetBeans y servicios locales
 
 ## 1. Extraer y abrir
 
@@ -23,6 +39,10 @@ Para una base nueva no ejecutar `portal_empleo_inclusivo_DATOS_ACTUALES.sql` ni
 los archivos individuales de `database/migrations`. El instalador principal ya
 contiene estructura, datos academicos y cambios vigentes.
 
+Crear después una cuenta MySQL para la aplicación con una contraseña local propia
+y concederle permisos únicamente sobre `portal_empleo_inclusivo`. El instalador no
+incluye contraseñas de infraestructura.
+
 Si ya existe una base anterior con datos que se deben conservar, no volver a
 importar el instalador. Ejecutar `database/actualizar_version_actual.sql` y luego
 `database/migrations/20261104_crud_stored_procedures.sql`. Esta migracion solo es
@@ -34,6 +54,10 @@ Finalmente ejecutar `database/verificar_instalacion.sql`. Debe aparecer:
 ```text
 INSTALACION_COMPLETA
 ```
+
+El verificador vigente comprueba 19 requisitos, incluidos nombres exactos de los
+procedimientos, mensajería de postulaciones, tamaño del hash OTP y ausencia del
+padrón CONADIS ficticio legado.
 
 La cuenta que ejecuta los scripts debe poder crear tablas, indices, claves
 foraneas y triggers. La cuenta `incluyelab_app` es para la aplicacion, no para
@@ -72,3 +96,15 @@ Si Tomcat usa otro puerto, reemplazar `8080` por el puerto configurado.
 
 Las cuentas academicas estan documentadas en `README.md`. Deben cambiarse antes
 de utilizar el sistema fuera de una demostracion local.
+
+## Correo OTP
+
+En Docker no se necesita una cuenta real: Mailpit captura los mensajes. En modo
+manual configura `MAIL_HOST`, `MAIL_PORT`, `MAIL_FROM` y `MAIL_AUTH`. Si el servidor
+requiere autenticación, añade `MAIL_USER`, `MAIL_PASSWORD` y `MAIL_STARTTLS`.
+
+## Archivos cargados
+
+Los ejemplos de CV y CONADIS viajan dentro de `WEB-INF/demo`. Las cargas nuevas se
+guardan fuera del WAR bajo el directorio personal `IncluyeLab`; Docker lo reemplaza
+por el volumen persistente `incluyelab_data`.

@@ -1,0 +1,14 @@
+.git
+.github
+.idea
+.vscode
+target
+build
+dist
+nbproject/private
+verification
+*.zip
+*.log
+.env
+tmp
+output

@@ -1,8 +1,5 @@
 SET SQL_SAFE_UPDATES = 0;
 CREATE DATABASE IF NOT EXISTS portal_empleo_inclusivo CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS 'incluyelab_app'@'localhost' IDENTIFIED BY '123456';
-GRANT ALL PRIVILEGES ON portal_empleo_inclusivo.* TO 'incluyelab_app'@'localhost';
-FLUSH PRIVILEGES;
 USE portal_empleo_inclusivo;
 
 CREATE TABLE IF NOT EXISTS usuarios (
@@ -88,6 +85,19 @@ CREATE TABLE IF NOT EXISTS postulaciones (
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
     FOREIGN KEY (id_oferta) REFERENCES ofertas(id_oferta)
 );
+
+CREATE TABLE IF NOT EXISTS mensajes_postulacion (
+    id_mensaje BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_postulacion INT NOT NULL,
+    id_remitente INT NOT NULL,
+    mensaje VARCHAR(2000) NOT NULL,
+    leido TINYINT(1) NOT NULL DEFAULT 0,
+    fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_mensaje_postulacion FOREIGN KEY(id_postulacion) REFERENCES postulaciones(id_postulacion) ON DELETE CASCADE,
+    CONSTRAINT fk_mensaje_remitente FOREIGN KEY(id_remitente) REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+    INDEX idx_mensaje_hilo(id_postulacion,id_mensaje),
+    INDEX idx_mensaje_no_leido(id_postulacion,leido,id_remitente)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT IGNORE INTO usuarios(id_usuario, nombre, correo, contrasena, rol) VALUES
 (1, 'Administrador Principal', 'admin@incluyelab.pe', 'pbkdf2$600000$2CH8nIfc/yqP+TPqd9+GoA==$OliYbqbcbro88wxaRfuVfFqF/XwSPODrm7xBQ2KJcnE=', 'ADMIN'),
@@ -276,7 +286,7 @@ CREATE TABLE IF NOT EXISTS incidencias_soporte (
 CREATE TABLE IF NOT EXISTS notificaciones (
     id_notificacion INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
-    tipo ENUM('POSTULACION_ELIMINADA','OFERTA_ELIMINADA','REPORTE_SOPORTE','CONADIS_ESTADO','CUENTA_DESBLOQUEADA','CLAVE_TEMPORAL','CLAVE_CAMBIADA','ACTIVIDAD_SOSPECHOSA','MENSAJE_SOPORTE') NOT NULL,
+    tipo ENUM('POSTULACION_ELIMINADA','OFERTA_ELIMINADA','REPORTE_SOPORTE','CONADIS_ESTADO','CUENTA_DESBLOQUEADA','CLAVE_TEMPORAL','CLAVE_CAMBIADA','ACTIVIDAD_SOSPECHOSA','MENSAJE_SOPORTE','NUEVO_MENSAJE') NOT NULL,
     titulo VARCHAR(150) NOT NULL,
     mensaje VARCHAR(1000) NOT NULL,
     leida TINYINT(1) NOT NULL DEFAULT 0,
@@ -453,7 +463,7 @@ PREPARE final_stmt FROM @ddl; EXECUTE final_stmt; DEALLOCATE PREPARE final_stmt;
 
 ALTER TABLE notificaciones MODIFY tipo ENUM(
  'POSTULACION_ELIMINADA','OFERTA_ELIMINADA','REPORTE_SOPORTE','CONADIS_ESTADO',
- 'CUENTA_DESBLOQUEADA','CLAVE_TEMPORAL','CLAVE_CAMBIADA','ACTIVIDAD_SOSPECHOSA','MENSAJE_SOPORTE'
+ 'CUENTA_DESBLOQUEADA','CLAVE_TEMPORAL','CLAVE_CAMBIADA','ACTIVIDAD_SOSPECHOSA','MENSAJE_SOPORTE','NUEVO_MENSAJE'
 ) NOT NULL;
 
 DROP TRIGGER IF EXISTS bi_conadis_obligatoria;
@@ -548,6 +558,19 @@ WHERE @luis IS NOT NULL AND NOT EXISTS(SELECT 1 FROM educacion_postulante WHERE 
 INSERT INTO certificaciones_postulante(id_usuario,nombre,emisor,fecha_emision,credencial_url)
 SELECT @luis,'Diseno de contenido digital accesible','IncluyeLab - contenido demostrativo','Sep. 2026',''
 WHERE @luis IS NOT NULL AND NOT EXISTS(SELECT 1 FROM certificaciones_postulante WHERE id_usuario=@luis AND nombre='Diseno de contenido digital accesible');
+
+-- Registros operativos ficticios para recorrer RR. HH. y Soporte desde una instalación nueva.
+SET @rrhh_demo=(SELECT id_usuario FROM usuarios WHERE correo='marco.salcedo@incluyelab.com' AND rol='RECURSOS_HUMANOS' LIMIT 1);
+SET @soporte_demo=(SELECT id_usuario FROM usuarios WHERE correo='daniel.advincula@incluyelab.com' AND rol='SOPORTE_TECNICO' LIMIT 1);
+SET @postulacion_demo=(SELECT p.id_postulacion FROM postulaciones p JOIN usuarios u ON u.id_usuario=p.id_usuario WHERE u.correo='luis@correo.com' ORDER BY p.id_postulacion LIMIT 1);
+INSERT INTO evaluaciones_rrhh(id_postulacion,id_evaluador,observaciones,retroalimentacion,resultado,estado,etapa,puntaje_cv,puntaje_entrevista,puntaje_desempeno,porcentaje_compatibilidad)
+SELECT @postulacion_demo,@rrhh_demo,'Evaluación académica inicial del CV.','Completar entrevista y registrar evidencias antes de publicar un resultado.','PENDIENTE','BORRADOR','REVISION_CV',75,0,0,60
+WHERE @postulacion_demo IS NOT NULL AND @rrhh_demo IS NOT NULL
+AND NOT EXISTS(SELECT 1 FROM evaluaciones_rrhh WHERE id_postulacion=@postulacion_demo AND id_evaluador=@rrhh_demo);
+INSERT INTO incidencias_soporte(id_creador,id_responsable,correo,titulo,descripcion,origen,categoria,prioridad,decision,estado,solucion,numero_ticket)
+SELECT @soporte_demo,@soporte_demo,'daniel.advincula@incluyelab.com','Comprobar acceso al portal de demostración','Ticket académico interno para practicar el CRUD de Soporte Técnico. No corresponde a una persona real.','INTERNA','TECNICO','BAJA','PENDIENTE','PENDIENTE','','DEMO-SOPORTE-001'
+WHERE @soporte_demo IS NOT NULL
+AND NOT EXISTS(SELECT 1 FROM incidencias_soporte WHERE numero_ticket='DEMO-SOPORTE-001');
 
 INSERT IGNORE INTO esquema_version(version) VALUES ('2026.11.03');
 

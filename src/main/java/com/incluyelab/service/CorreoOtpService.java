@@ -16,22 +16,25 @@ public final class CorreoOtpService {
         String usuario = valor("MAIL_USER");
         String clave = valor("MAIL_PASSWORD");
         String remitente = valor("MAIL_FROM");
-        if (host.isEmpty() || usuario.isEmpty() || clave.isEmpty() || remitente.isEmpty()) {
-            throw new IllegalStateException("El envío de correo no está configurado. Define MAIL_HOST, MAIL_USER, MAIL_PASSWORD y MAIL_FROM.");
+        boolean autenticacion = booleano("MAIL_AUTH", true);
+        if (host.isEmpty() || remitente.isEmpty() || (autenticacion && (usuario.isEmpty() || clave.isEmpty()))) {
+            throw new IllegalStateException("El envío de correo no está configurado. Define MAIL_HOST y MAIL_FROM; si MAIL_AUTH=true, define también MAIL_USER y MAIL_PASSWORD.");
         }
         Properties props = new Properties();
         props.setProperty("mail.smtp.host", host);
         props.setProperty("mail.smtp.port", valor("MAIL_PORT").isEmpty() ? "587" : valor("MAIL_PORT"));
-        props.setProperty("mail.smtp.auth", "true");
+        props.setProperty("mail.smtp.auth", String.valueOf(autenticacion));
         props.setProperty("mail.smtp.starttls.enable", valor("MAIL_STARTTLS").isEmpty() ? "true" : valor("MAIL_STARTTLS"));
         props.setProperty("mail.smtp.connectiontimeout", "10000");
         props.setProperty("mail.smtp.timeout", "10000");
         props.setProperty("mail.smtp.writetimeout", "10000");
-        Session session = Session.getInstance(props, new Authenticator() {
-            @Override protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(usuario, clave);
-            }
-        });
+        Session session = autenticacion
+                ? Session.getInstance(props, new Authenticator() {
+                    @Override protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(usuario, clave);
+                    }
+                })
+                : Session.getInstance(props);
         try {
             MimeMessage mensaje = new MimeMessage(session);
             mensaje.setFrom(new InternetAddress(remitente, "IncluyeLab", "UTF-8"));
@@ -50,5 +53,10 @@ public final class CorreoOtpService {
         String v = System.getProperty(nombre);
         if (v == null || v.trim().isEmpty()) v = System.getenv(nombre);
         return v == null ? "" : v.trim();
+    }
+
+    private boolean booleano(String nombre, boolean porDefecto) {
+        String v = valor(nombre);
+        return v.isEmpty() ? porDefecto : Boolean.parseBoolean(v);
     }
 }

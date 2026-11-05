@@ -49,7 +49,8 @@ public class SesionFilter implements Filter {
             }
         }
         String rol = Permisos.rolRequerido(ruta);
-        boolean protegida = rol != null || ruta.equals("/perfil") || ruta.equals("/cv") || ruta.equals("/foto-perfil") || ruta.equals("/conadis-foto");
+        boolean protegida = rol != null || ruta.equals("/perfil") || ruta.equals("/cv") || ruta.equals("/foto-perfil")
+                || ruta.equals("/conadis-foto") || ruta.equals("/conversacion");
         if (protegida && usuario == null) {
             if (!"GET".equals(req.getMethod())) { res.sendError(403,"Inicia sesion para realizar esta accion."); return; }
             String motivo = revocada ? "revocada" : req.getRequestedSessionId()!=null && !req.isRequestedSessionIdValid() ? "expirada" : "requerida";

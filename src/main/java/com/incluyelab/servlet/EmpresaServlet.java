@@ -22,11 +22,13 @@ public class EmpresaServlet extends HttpServlet {
         if (!"EMPRESA".equals(usuario.getRol())) { response.sendError(403,"Acceso exclusivo para empresas."); return; }
         try {
             if(request.getSession().getAttribute("empresaCsrf")==null) request.getSession().setAttribute("empresaCsrf",java.util.UUID.randomUUID().toString());
+            if(request.getSession().getAttribute("notifCsrf")==null) request.getSession().setAttribute("notifCsrf",java.util.UUID.randomUUID().toString());
             Empresa empresa = new EmpresaDAO().obtenerPorUsuario(usuario.getIdUsuario());
             request.setAttribute("empresa", empresa);
             request.setAttribute("ofertas", empresa == null ? null : new OfertaDAO().listarPorEmpresa(empresa.getIdEmpresa()));
             request.setAttribute("candidatos", empresa == null ? null : new PostulacionDAO().listarPorEmpresa(usuario.getIdUsuario()));
             request.setAttribute("evaluacionesRrhh", empresa == null ? null : new com.incluyelab.dao.RecursosHumanosDAO().evaluacionesPublicadasEmpresa(usuario.getIdUsuario()));
+            request.setAttribute("notificaciones",new com.incluyelab.dao.NotificacionDAO().listar(usuario.getIdUsuario()));
             String editar=request.getParameter("editar");
             if(empresa!=null && editar!=null && editar.matches("[0-9]{1,9}")) {
                 com.incluyelab.model.Oferta ofertaEditar=new OfertaDAO().obtenerPorEmpresa(Integer.parseInt(editar),empresa.getIdEmpresa());
