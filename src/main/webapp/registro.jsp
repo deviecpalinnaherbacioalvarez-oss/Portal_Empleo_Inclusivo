@@ -38,14 +38,19 @@
             <div id="step-1" class="step-panel" aria-labelledby="indicator-step-1">
                 <div class="field">
                     <label for="rol">Tipo de cuenta</label>
-                    <select class="form-select" id="rol" name="rol" required onchange="handleRolChange(this.value)">
+                    <select class="form-select" id="rol" name="rol" required onchange="handleRolChange(this.value, true)">
                         <option value="POSTULANTE">Postulante: busco empleo inclusivo</option>
                         <option value="EMPRESA" <%="EMPRESA".equals(request.getParameter("rol")) ? "selected" : ""%>>Empresa: busco talento</option>
                     </select>
                 </div>
                 <div class="field">
-                    <label id="nombre-label" for="nombre">Nombre completo o Razón Social</label>
+                    <label id="nombre-label" for="nombre">Nombre completo</label>
                     <input class="form-control" id="nombre" name="nombre" autocomplete="name" maxlength="120" value="<%=h(request.getParameter("nombre"))%>" required placeholder="Ej. Alonso Gabriel Pazos">
+                </div>
+                <div class="field" id="ruc-field" hidden>
+                    <label for="ruc">RUC de la empresa</label>
+                    <input class="form-control" id="ruc" name="ruc" inputmode="numeric" maxlength="11" pattern="(10|20)[0-9]{9}" autocomplete="off" aria-describedby="ruc-ayuda" value="<%=h(request.getParameter("ruc"))%>" placeholder="Ej. 20123456789" disabled>
+                    <small class="muted" id="ruc-ayuda">11 dígitos, empieza con 10 o 20. Proyecto académico: no se consulta el padrón de SUNAT.</small>
                 </div>
 
                 <div class="field register-email">
@@ -140,11 +145,20 @@
             ? 'Escribe la misma contraseña.'
             : distintas ? 'Las contraseñas no coinciden.' : 'Las contraseñas coinciden.';
     }
-    function handleRolChange(rol) {
+    function handleRolChange(rol, anunciar) {
         var stepper = document.getElementById('reg-stepper');
         var btnNext = document.getElementById('btnNext');
         var btnSubmitDirect = document.getElementById('btnSubmitDirect');
-        if (rol !== 'POSTULANTE') {
+        var empresa = rol === 'EMPRESA';
+        var nombre = document.getElementById('nombre');
+        var ruc = document.getElementById('ruc');
+        // Una empresa se identifica por razón social y RUC; app.js actualiza la etiqueta del nombre.
+        nombre.placeholder = empresa ? 'Ej. Inversiones Andinas S.A.C.' : 'Ej. Alonso Gabriel Pazos';
+        nombre.autocomplete = empresa ? 'organization' : 'name';
+        document.getElementById('ruc-field').hidden = !empresa;
+        ruc.disabled = !empresa;
+        ruc.required = empresa;
+        if (empresa) {
             stepper.style.display = 'none';
             btnNext.style.display = 'none';
             btnSubmitDirect.style.display = 'flex';
@@ -153,6 +167,11 @@
             stepper.style.display = 'flex';
             btnNext.style.display = 'flex';
             btnSubmitDirect.style.display = 'none';
+        }
+        if (anunciar) {
+            document.getElementById('register-step-status').textContent = empresa
+                ? 'Cuenta de empresa seleccionada. Completa la razón social y el RUC.'
+                : 'Cuenta de postulante seleccionada. Después de tus datos se pedirá el carnet CONADIS.';
         }
     }
 

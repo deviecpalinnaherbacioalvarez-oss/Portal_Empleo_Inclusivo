@@ -14,9 +14,12 @@
     };
     const main = document.querySelector('#contenido');
     if (main && !main.hasAttribute('tabindex')) main.tabIndex = -1;
-    // Estas ayudas requieren activación explícita en cada carga de página.
+    // Las flechas requieren activación explícita en cada carga de página.
+    // La voz al navegar empieza apagada y, una vez activada, se recuerda entre páginas.
+    const voiceKey = 'incluyelab.vozNavegar';
+    const rememberReadFocus = value => { try { localStorage.setItem(voiceKey, value ? '1' : '0'); } catch (_) { /* sin almacenamiento */ } };
     let arrows = false;
-    let readFocus = false;
+    let readFocus = (() => { try { return localStorage.getItem(voiceKey) === '1'; } catch (_) { return false; } })();
     let muted = false;
     const updateArrows = () => {
         document.documentElement.classList.toggle('arrow-navigation', arrows);
@@ -25,7 +28,8 @@
     const updateReadFocus = () => {
         all('[data-read-focus-toggle]').forEach(button => {
             button.setAttribute('aria-pressed', String(readFocus));
-            button.textContent = readFocus ? 'Desactivar voz al navegar' : 'Activar voz al navegar';
+            // La barra superior conserva su icono y muestra el estado con aria-pressed.
+            if (!button.closest('.a11y-controls')) button.textContent = readFocus ? 'Desactivar voz al navegar' : 'Activar voz al navegar';
         });
     };
     updateArrows();
@@ -36,6 +40,7 @@
     let generation = 0;
     let currentUtterance = null;
     let reading = false;
+    let pageReading = false;
     let paused = false;
     let spanishVoice = null;
     const updateVoice = () => {
@@ -95,6 +100,7 @@
         const chunks = text.match(/.{1,220}(?:\s|$)|\S{1,220}/g) || [text];
         const token = generation;
         reading = true;
+        pageReading = announce;
         updateSpeechControls();
         if (announce) status('Lectura iniciada. Puedes pausarla o detenerla con Escape.');
         const next = index => {
@@ -159,13 +165,18 @@
         }
         if (button.matches('[data-read-focus-toggle]')) {
             readFocus = !readFocus;
-            if (!readFocus) stop('Voz al navegar desactivada.');
-            else {
+            rememberReadFocus(readFocus);
+            updateReadFocus();
+            // La confirmación se dice en voz alta: quien no ve el mensaje también se entera.
+            if (!readFocus) {
+                status('Voz al navegar desactivada.');
+                speak('Voz al navegar desactivada', false);
+            } else {
                 muted = false;
                 updateSpeechControls();
-                status('Voz al navegar activada para esta página.');
+                status('Voz al navegar activada. Se mantendrá en las demás páginas hasta que la desactives.');
+                speak('Voz al navegar activada', false);
             }
-            updateReadFocus();
         }
     });
     const focusables = 'a[href], button, input:not([type="hidden"]), select, textarea, summary, [tabindex="0"]';
@@ -185,21 +196,71 @@
         event.preventDefault();
         controls[index].focus();
     });
-    document.addEventListener('focusin', event => {
-        const node = event.target;
-        if (!readFocus || !supported || !node.matches(focusables)
-            || node.matches('[data-read-page], [data-read-stop], [data-read-pause]')) return;
+    // Texto que se anuncia para un control: tipo, nombre y estado.
+    function describe(node) {
         const exactLabel = node.getAttribute('data-speech-label');
-        const label = exactLabel || node.getAttribute('aria-label')
+        if (exactLabel) return exactLabel;
+        const label = (node.getAttribute('aria-label')
             || (node.labels ? [...node.labels].map(item => item.textContent.trim()).join('. ') : '')
-            || node.textContent.trim() || node.title;
-        if (!label) return;
-        if (exactLabel) { speak(exactLabel, false); return; }
+            || node.textContent.trim() || node.title || '').replace(/\s+/g, ' ').trim();
+        if (!label) return '';
+        // Las tarjetas enlazadas tienen mucho texto: basta con el inicio para reconocerlas.
+        const name = label.length > 200 ? label.slice(0, 200).replace(/\s+\S*$/, '') + '…' : label;
         const type = node.matches('input, textarea, select') ? 'Campo. '
             : node.matches('a') ? 'Enlace. ' : 'Control. ';
         // Solo nombre y estado, incluso si el usuario mostró su contraseña.
-        const state = node.hasAttribute('aria-pressed') ? (node.getAttribute('aria-pressed') === 'true' ? '. Activado' : '. Desactivado') : '';
-        speak(type + label + state, false);
+        const state = node.hasAttribute('aria-pressed') ? (node.getAttribute('aria-pressed') === 'true' ? '. Activado' : '. Desactivado')
+            : node.matches('summary') ? (node.parentElement.open ? '. Desplegado' : '. Plegado') : '';
+        // En listas se dice la opción elegida y en casillas si están marcadas; nunca el texto escrito.
+        const choice = node.matches('select') && node.selectedOptions.length ? '. ' + node.selectedOptions[0].textContent.trim()
+            : node.matches('input[type="checkbox"], input[type="radio"]') ? (node.checked ? '. Marcado' : '. Sin marcar') : '';
+        return type + name + state + choice;
+    }
+    document.addEventListener('change', event => {
+        const node = event.target;
+        if (!readFocus || !supported || !node.matches('select, input[type="checkbox"], input[type="radio"]')) return;
+        speak(describe(node), false);
+    });
+    // Un clic con ratón también enfoca el control; ese foco no se anuncia porque el
+    // ratón ya lo leyó al pasar por encima y el clic anuncia el estado nuevo.
+    let pointerFocus = false;
+    let hoverTarget = null;
+    let hoverTimer = 0;
+    document.addEventListener('pointerdown', event => {
+        if (event.pointerType !== 'mouse') return;
+        // El clic anuncia el estado nuevo; se descarta la lectura pendiente del ratón.
+        clearTimeout(hoverTimer);
+        pointerFocus = true;
+        setTimeout(() => { pointerFocus = false; }, 0);
+    }, true);
+    document.addEventListener('focusin', event => {
+        const node = event.target;
+        if (!readFocus || !supported || pointerFocus || !node.matches(focusables)
+            || node.matches('[data-read-page], [data-read-stop], [data-read-pause]')) return;
+        const text = describe(node);
+        if (text) speak(text, false);
+    });
+    // Se escucha el movimiento y no "pointerover": si la página cambia de forma bajo un
+    // ratón quieto (por ejemplo, al aparecer el campo RUC) no se interrumpe lo que se está diciendo.
+    document.addEventListener('pointermove', event => {
+        if (event.pointerType !== 'mouse' || !readFocus || !supported) return;
+        const control = event.target.closest(focusables);
+        if (control === hoverTarget) return;
+        hoverTarget = control;
+        clearTimeout(hoverTimer);
+        // Una pausa breve evita que hable sin parar al cruzar la página; no corta "Escuchar página".
+        if (!control || (reading && pageReading) || !visible(control)) return;
+        hoverTimer = setTimeout(() => {
+            const text = describe(control);
+            if (text) speak(text, false);
+        }, 350);
+    }, { passive: true });
+    document.addEventListener('click', event => {
+        if (!readFocus || !supported) return;
+        const control = event.target.closest('[aria-pressed], summary');
+        if (!control || control.matches('[data-read-focus-toggle], [data-read-mute]')) return;
+        // Espera a que el botón cambie su estado para anunciar el nuevo, no el anterior.
+        setTimeout(() => speak(describe(control), false), 0);
     });
     document.addEventListener('close', event => { if (event.target.matches('dialog')) stop(); }, true);
     document.addEventListener('hidden.bs.modal', () => stop());

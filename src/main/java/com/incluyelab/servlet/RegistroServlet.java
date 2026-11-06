@@ -47,6 +47,17 @@ public class RegistroServlet extends HttpServlet {
             return;
         }
 
+        String ruc = null;
+        if ("EMPRESA".equals(rol)) {
+            ruc = request.getParameter("ruc") == null ? "" : request.getParameter("ruc").replaceAll("[\\s-]", "");
+            // Formato SUNAT: 11 dígitos, 10 (persona con negocio) o 20 (persona jurídica). No se consulta el padrón.
+            if (!ruc.matches("(10|20)[0-9]{9}")) {
+                request.setAttribute("error", "El RUC debe tener 11 dígitos y empezar con 10 o 20. Ejemplo: 20123456789.");
+                request.getRequestDispatcher("/registro.jsp").forward(request, response);
+                return;
+            }
+        }
+
         Path archivoGuardado = null;
         String nombreArchivoFinal = null;
         String rui = null;
@@ -79,7 +90,7 @@ public class RegistroServlet extends HttpServlet {
         usuario.setRol(rol);
 
         try {
-            int nuevoId = new UsuarioDAO().registrar(usuario,rui,nombreArchivoFinal);
+            int nuevoId = new UsuarioDAO().registrar(usuario,rui,nombreArchivoFinal,ruc);
             archivoGuardado=null; // La imagen ya pertenece a una cuenta confirmada en la base.
             usuario=new UsuarioDAO().obtenerActivo(nuevoId);
             if(usuario==null)throw new IllegalArgumentException("Cuenta no disponible.");

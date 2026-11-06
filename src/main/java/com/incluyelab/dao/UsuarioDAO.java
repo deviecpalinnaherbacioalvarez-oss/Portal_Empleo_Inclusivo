@@ -80,8 +80,9 @@ public class UsuarioDAO {
         }
     }
 
-    public int registrar(Usuario usuario) throws SQLException { return registrar(usuario,null,null); }
-    public int registrar(Usuario usuario,String rui,String foto) throws SQLException {
+    public int registrar(Usuario usuario) throws SQLException { return registrar(usuario,null,null,null); }
+    public int registrar(Usuario usuario,String rui,String foto) throws SQLException { return registrar(usuario,rui,foto,null); }
+    public int registrar(Usuario usuario,String rui,String foto,String ruc) throws SQLException {
         if (usuario == null || !Roles.esRegistroPublico(usuario.getRol())) {
             throw new IllegalArgumentException("El registro publico solo permite cuentas de postulante o empresa.");
         }
@@ -96,8 +97,16 @@ public class UsuarioDAO {
                     try(ResultSet rs=ps.getGeneratedKeys()){if(!rs.next())throw new SQLException("No se genero la cuenta");id=rs.getInt(1);}
                 }
                 if("EMPRESA".equals(usuario.getRol())){
-                    try(PreparedStatement ps=cn.prepareStatement("INSERT INTO empresas(id_usuario,razon_social,ruc,sector,sello_inclusivo,estado_revision) VALUES(?,?,'00000000000','','Pendiente','pendiente')")){
-                        ps.setInt(1,id);ps.setString(2,usuario.getNombre());ps.executeUpdate();
+                    // Sin RUC (llamadas antiguas) se conserva el marcador de ficha incompleta.
+                    String rucEmpresa=ruc==null?"00000000000":ruc;
+                    if(ruc!=null){
+                        try(PreparedStatement ps=cn.prepareStatement("SELECT 1 FROM empresas WHERE ruc=?")){
+                            ps.setString(1,ruc);
+                            try(ResultSet rs=ps.executeQuery()){if(rs.next())throw new IllegalArgumentException("Ese RUC ya pertenece a una empresa registrada. Ingresa con esa cuenta o revisa el número.");}
+                        }
+                    }
+                    try(PreparedStatement ps=cn.prepareStatement("INSERT INTO empresas(id_usuario,razon_social,ruc,sector,sello_inclusivo,estado_revision) VALUES(?,?,?,'','Pendiente','pendiente')")){
+                        ps.setInt(1,id);ps.setString(2,usuario.getNombre());ps.setString(3,rucEmpresa);ps.executeUpdate();
                     }
                 }
                 if("POSTULANTE".equals(usuario.getRol()))new VerificacionConadisDAO().enviarSolicitud(cn,id,rui,foto);

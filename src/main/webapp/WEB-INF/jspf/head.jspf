@@ -7,5 +7,5 @@
 <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/css/styles.css?v=20261104-conversaciones">
 <script defer src="<%=request.getContextPath()%>/assets/vendor/bootstrap.bundle.min.js"></script>
 <script defer src="<%=request.getContextPath()%>/assets/vendor/lucide.min.js"></script>
-<script defer src="<%=request.getContextPath()%>/assets/js/app.js?v=20261028-registro-confirmacion"></script>
-<script defer src="<%=request.getContextPath()%>/assets/js/visual.js?v=20261104-activacion-explicita"></script>
+<script defer src="<%=request.getContextPath()%>/assets/js/app.js?v=20261105-registro-ruc"></script>
+<script defer src="<%=request.getContextPath()%>/assets/js/visual.js?v=20261105-voz-registro2"></script>

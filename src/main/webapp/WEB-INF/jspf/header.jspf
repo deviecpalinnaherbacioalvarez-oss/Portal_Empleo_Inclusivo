@@ -13,6 +13,7 @@
         <button type="button" data-preference="contrast" aria-pressed="false"><i data-lucide="contrast" aria-hidden="true"></i> Alto contraste</button>
         <button type="button" data-preference="font" aria-pressed="false"><i data-lucide="type" aria-hidden="true"></i> Fuente legible</button>
         <button type="button" data-preference="large" aria-pressed="false"><i data-lucide="a-arrow-up" aria-hidden="true"></i> Texto grande</button>
+        <button type="button" data-read-focus-toggle aria-pressed="false"><i data-lucide="volume-2" aria-hidden="true"></i> Voz al navegar</button>
     </div>
 </div></div>
 <details class="visual-tools<%=loginKeyboardPage ? " login-keyboard-help" : ""%>" id="ayuda-visual"<%=loginKeyboardPage ? " open" : ""%>>
@@ -37,7 +38,7 @@
         </div>
             <p class="keyboard-help-text" id="visual-help">Las flechas son opcionales y no reemplazan el teclado habitual. Dentro de campos y listas, usa las teclas nativas del control.</p>
         <% } else { %>
-        <p id="visual-help">Las flechas y la voz al navegar se activan únicamente al pulsar sus botones. Dentro de campos de texto y selectores, las flechas mantienen su función habitual. También puedes usar Tab, Mayús + Tab y Enter.</p>
+        <p id="visual-help">Las flechas y la voz al navegar se activan únicamente al pulsar sus botones. Con la voz activada se lee cada botón o enlace al enfocarlo o al pasar el ratón, y se mantiene en las demás páginas hasta que la desactives. Dentro de campos de texto y selectores, las flechas mantienen su función habitual. También puedes usar Tab, Mayús + Tab y Enter.</p>
         <p class="visual-status" data-visual-status role="status" aria-live="polite"></p>
         <a class="text-link" href="<%=request.getContextPath()%>/accesibilidad">Ver las 13 necesidades de accesibilidad y su estado</a>
         <% } %>

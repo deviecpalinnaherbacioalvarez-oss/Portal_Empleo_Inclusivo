@@ -81,7 +81,7 @@
     }));
     const roleSelect = $('#rol');
     if (roleSelect && $('#nombre-label')) {
-        const updateName = () => { $('#nombre-label').textContent = roleSelect.value === 'EMPRESA' ? 'Nombre de la empresa' : 'Nombre completo'; };
+        const updateName = () => { $('#nombre-label').textContent = roleSelect.value === 'EMPRESA' ? 'Razón social de la empresa' : 'Nombre completo'; };
         updateName(); roleSelect.addEventListener('change', updateName);
     }
     window.lucide?.createIcons();
